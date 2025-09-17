@@ -280,4 +280,4 @@ class ApiService {
 }
 
 export const apiService = new ApiService();
-export type { CareerRecommendation, SessionData, Mentor, LearningRoadmap, IndustryTrends };
+export type { CareerRecommendation, SessionData, Mentor };

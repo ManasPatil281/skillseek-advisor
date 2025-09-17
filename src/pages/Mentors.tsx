@@ -334,13 +334,16 @@ export default function Mentors() {
                 </div>
 
                 {/* Match Score (if personalized) */}
-                {isPersonalized && mentor.match_score && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Badge className="bg-success/10 text-success">
-                      {mentor.match_score}% Match
-                    </Badge>
-                  </div>
-                )}
+                {(() => {
+                  const matchScore = (mentor as any)?.match_score ?? (mentor as any)?.matchScore ?? null;
+                  return isPersonalized && matchScore != null ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Badge className="bg-success/10 text-success">
+                        {matchScore}% Match
+                      </Badge>
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">

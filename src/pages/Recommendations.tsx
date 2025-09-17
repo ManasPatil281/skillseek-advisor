@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, DollarSign, Star, ArrowRight, Briefcase } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiService, type CareerRecommendation } from "@/services/api";
+import { apiService, type CareerRecommendation, type LearningRoadmap } from "@/services/api";
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
@@ -48,7 +48,7 @@ export default function Recommendations() {
           });
           
           const roadmaps = await Promise.all(roadmapPromises);
-          const validRoadmaps = roadmaps.filter(roadmap => roadmap && !roadmap.error);
+          const validRoadmaps = roadmaps.filter((roadmap): roadmap is LearningRoadmap => !!roadmap && !((roadmap as any).error));
           
           // Store roadmaps in localStorage
           localStorage.setItem('learningRoadmaps', JSON.stringify(validRoadmaps));
@@ -77,7 +77,7 @@ export default function Recommendations() {
             });
             
             const roadmaps = await Promise.all(roadmapPromises);
-            const validRoadmaps = roadmaps.filter(roadmap => roadmap && !roadmap.error);
+            const validRoadmaps = roadmaps.filter((roadmap): roadmap is LearningRoadmap => !!roadmap && !((roadmap as any).error));
             
             // Store roadmaps in localStorage
             localStorage.setItem('learningRoadmaps', JSON.stringify(validRoadmaps));
