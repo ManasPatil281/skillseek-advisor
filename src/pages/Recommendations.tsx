@@ -5,90 +5,93 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, DollarSign, Star, ArrowRight, Briefcase } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-
-interface CareerRecommendation {
-  career_id: string;
-  title: string;
-  match_score: number;
-  demand_score: number;
-  avg_salary: number;
-  entry_level_salary: number;
-  key_skills: string[];
-  description: string;
-  education_requirements: string;
-  growth_trend: {
-    "5y_growth_pct": number;
-    explain: string;
-  };
-}
-
-// Mock data - in real app this would come from API
-const mockRecommendations: CareerRecommendation[] = [
-  {
-    career_id: "software-engineer",
-    title: "Software Engineer",
-    match_score: 92,
-    demand_score: 95,
-    avg_salary: 105000,
-    entry_level_salary: 75000,
-    key_skills: ["Python", "JavaScript", "React", "Problem Solving", "Teamwork"],
-    description: "Design, develop, and maintain software applications and systems",
-    education_requirements: "Bachelor's degree in Computer Science or related field",
-    growth_trend: {
-      "5y_growth_pct": 25,
-      explain: "High demand driven by digital transformation across industries"
-    }
-  },
-  {
-    career_id: "data-scientist", 
-    title: "Data Scientist",
-    match_score: 88,
-    demand_score: 90,
-    avg_salary: 120000,
-    entry_level_salary: 85000,
-    key_skills: ["Python", "Machine Learning", "Statistics", "SQL", "Data Visualization"],
-    description: "Analyze complex data to help organizations make informed decisions",
-    education_requirements: "Master's degree in Data Science, Statistics, or related field preferred",
-    growth_trend: {
-      "5y_growth_pct": 35,
-      explain: "Rapid growth as companies increasingly rely on data-driven insights"
-    }
-  },
-  {
-    career_id: "product-manager",
-    title: "Product Manager", 
-    match_score: 85,
-    demand_score: 88,
-    avg_salary: 130000,
-    entry_level_salary: 90000,
-    key_skills: ["Strategy", "Communication", "Market Analysis", "Leadership", "Agile"],
-    description: "Guide product development from conception to launch and beyond",
-    education_requirements: "Bachelor's degree in Business, Engineering, or related field",
-    growth_trend: {
-      "5y_growth_pct": 20,
-      explain: "Strong demand as companies focus on product-led growth"
-    }
-  }
-];
+import { apiService, type CareerRecommendation } from "@/services/api";
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if survey data exists
-    const surveyData = localStorage.getItem('surveyData');
-    if (!surveyData) {
-      navigate('/survey');
-      return;
-    }
+    const fetchRecommendations = async () => {
+      // Check if survey results exist (from new flow)
+      const surveyResults = localStorage.getItem('surveyResults');
+      const oldSurveyData = localStorage.getItem('surveyData');
+      
+      if (!surveyResults && !oldSurveyData) {
+        navigate('/survey');
+        return;
+      }
 
-    // Simulate API call delay
-    setTimeout(() => {
-      setRecommendations(mockRecommendations);
-      setIsLoading(false);
-    }, 1500);
+      try {
+        setIsLoading(true);
+        
+        let sessionData;
+        let existingRecommendations;
+        
+        if (surveyResults) {
+          // New flow - recommendations already generated
+          const parsedResults = JSON.parse(surveyResults);
+          existingRecommendations = parsedResults.recommendations;
+          sessionData = parsedResults.sessionData;
+        }
+        
+        if (existingRecommendations && existingRecommendations.length > 0) {
+          // Use existing recommendations
+          setRecommendations(existingRecommendations);
+          
+          // Generate learning roadmaps for the top 3 careers
+          const roadmapPromises = existingRecommendations.slice(0, 3).map(async (career: any) => {
+            const response = await apiService.generateLearningRoadmap(career, sessionData);
+            return response.data;
+          });
+          
+          const roadmaps = await Promise.all(roadmapPromises);
+          const validRoadmaps = roadmaps.filter(roadmap => roadmap && !roadmap.error);
+          
+          // Store roadmaps in localStorage
+          localStorage.setItem('learningRoadmaps', JSON.stringify(validRoadmaps));
+        } else {
+          // Fallback to old flow or generate new recommendations
+          const dataToUse = surveyResults ? JSON.parse(surveyResults).sessionData : JSON.parse(oldSurveyData);
+          
+          const response = await apiService.getRecommendations({
+            questions: dataToUse.questions || [],
+            user_id: null,
+            timestamp: dataToUse.completedAt || new Date().toISOString(),
+          });
+          
+          if (response.error) {
+            throw new Error(response.error);
+          }
+
+          const recommendationsData = response.data?.recommendations || response.data || [];
+          setRecommendations(Array.isArray(recommendationsData) ? recommendationsData : []);
+          
+          // Generate learning roadmaps for new recommendations
+          if (Array.isArray(recommendationsData) && recommendationsData.length > 0) {
+            const roadmapPromises = recommendationsData.slice(0, 3).map(async (career: any) => {
+              const response = await apiService.generateLearningRoadmap(career, dataToUse);
+              return response.data;
+            });
+            
+            const roadmaps = await Promise.all(roadmapPromises);
+            const validRoadmaps = roadmaps.filter(roadmap => roadmap && !roadmap.error);
+            
+            // Store roadmaps in localStorage
+            localStorage.setItem('learningRoadmaps', JSON.stringify(validRoadmaps));
+          }
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch recommendations');
+        console.error('Error fetching recommendations:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecommendations();
   }, [navigate]);
 
   const formatSalary = (salary: number) => {
@@ -124,6 +127,23 @@ export default function Recommendations() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-medium text-foreground">Error Loading Recommendations</h1>
+          <p className="text-muted-foreground mt-2">{error}</p>
+          <div className="flex gap-4 justify-center mt-4">
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+            <Link to="/survey">
+              <Button variant="outline">Retake Survey</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -133,6 +153,19 @@ export default function Recommendations() {
           Based on your survey responses, here are your top career matches
         </p>
       </div>
+
+      {recommendations.length === 0 && !isLoading && !error && (
+        <div className="text-center py-12">
+          <div className="text-muted-foreground">
+            <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg">No recommendations available</p>
+            <p className="text-sm">Please retake the survey to get personalized recommendations</p>
+            <Link to="/survey">
+              <Button className="mt-4">Take Survey</Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Recommendations Grid */}
       <div className="grid gap-6">
@@ -224,24 +257,36 @@ export default function Recommendations() {
         ))}
       </div>
 
-      {/* Actions */}
-      <div className="text-center pt-6">
-        <p className="text-muted-foreground mb-4">
-          Ready to explore mentors and learning paths for these careers?
-        </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link to="/mentors">
-            <Button variant="outline">
+      {recommendations.length > 0 && (
+        <div className="text-center pt-6">
+          <p className="text-muted-foreground mb-4">
+            Ready to explore mentors and learning paths for these careers?
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                // Store selected careers and session data for mentor matching
+                const surveyResults = localStorage.getItem('surveyResults');
+                const mentorData = {
+                  careers: recommendations,
+                  sessionData: surveyResults ? JSON.parse(surveyResults).sessionData : {},
+                  fromRecommendations: true
+                };
+                localStorage.setItem('mentorMatchingData', JSON.stringify(mentorData));
+                navigate('/mentors');
+              }}
+            >
               Find Mentors
             </Button>
-          </Link>
-          <Link to="/learning">
-            <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
-              View Learning Paths
-            </Button>
-          </Link>
+            <Link to="/learning">
+              <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">
+                View Learning Paths
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

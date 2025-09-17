@@ -2,19 +2,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Target, Users, TrendingUp, BookOpen, Sparkles, Award, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { apiService } from "@/services/api";
 
 export default function Dashboard() {
-  const quickStats = [
+  const [quickStats, setQuickStats] = useState([
     {
       title: "Career Matches",
-      value: "12",
+      value: "...",
       description: "Based on your profile",
       icon: Target,
       color: "text-primary",
     },
     {
       title: "Available Mentors",
-      value: "47",
+      value: "...",
       description: "In your field of interest",
       icon: Users,
       color: "text-success",
@@ -33,7 +35,59 @@ export default function Dashboard() {
       icon: TrendingUp,
       color: "text-primary",
     },
-  ];
+  ]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch careers count
+        const careersResponse = await apiService.getCareers();
+        if (!careersResponse.error && careersResponse.data) {
+          const careerCount = Array.isArray(careersResponse.data) 
+            ? careersResponse.data.length 
+            : careersResponse.data.count || 0;
+            
+          setQuickStats(prevStats =>
+            prevStats.map(stat =>
+              stat.title === "Career Matches"
+                ? { ...stat, value: careerCount.toString() }
+                : stat
+            )
+          );
+        }
+
+        // Fetch mentors count
+        const mentorsResponse = await apiService.getMentors();
+        if (!mentorsResponse.error && mentorsResponse.data) {
+          const mentorCount = Array.isArray(mentorsResponse.data) 
+            ? mentorsResponse.data.length 
+            : mentorsResponse.data.count || 0;
+            
+          setQuickStats(prevStats =>
+            prevStats.map(stat =>
+              stat.title === "Available Mentors"
+                ? { ...stat, value: mentorCount.toString() }
+                : stat
+            )
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        // Keep default values on error
+        setQuickStats(prevStats =>
+          prevStats.map(stat => ({
+            ...stat,
+            value: stat.value === "..." ? "N/A" : stat.value
+          }))
+        );
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-8 animate-fade-in">

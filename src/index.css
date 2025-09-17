@@ -1,101 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* CareerCompass Design System - GCP Aesthetic */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 @layer base {
   :root {
-    /* GCP Core Colors */
-    --background: 210 17% 97%; /* #F8F9FA */
-    --foreground: 210 11% 13%; /* #202124 */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --primary-hover: 221.2 83.2% 48.3%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
     
-    /* Card & Surface Colors */
-    --card: 0 0% 100%; /* Pure white */
-    --card-foreground: 210 11% 13%;
+    /* Additional color variables for components */
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 355.7 100% 97.3%;
+    --warning: 47.9 95.8% 53.1%;
+    --warning-foreground: 26 83.3% 14.1%;
     
-    /* Google Blue Accent */
-    --primary: 217 89% 51%; /* #1a73e8 */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 89% 45%;
+    /* Sidebar variables */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-active: 221.2 83.2% 53.3%;
+    --sidebar-active-foreground: 210 40% 98%;
     
-    /* Secondary & Muted */
-    --secondary: 210 25% 88%; /* Light grey */
-    --secondary-foreground: 210 9% 37%; /* #5f6368 */
+    /* Shadow variables */
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     
-    --muted: 210 17% 96%;
-    --muted-foreground: 210 9% 37%; /* #5f6368 */
-    
-    /* Borders & Inputs */
-    --border: 210 15% 85%; /* #DADCE0 */
-    --input: 210 15% 85%;
-    --ring: 217 89% 51%;
-    
-    /* Status Colors */
-    --success: 134 61% 41%; /* Green */
-    --success-foreground: 0 0% 100%;
-    
-    --warning: 45 93% 58%; /* Orange */
-    --warning-foreground: 210 11% 13%;
-    
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    
-    /* Sidebar Specific */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 210 11% 13%;
-    --sidebar-border: 210 15% 85%;
-    --sidebar-active: 217 89% 51%;
-    --sidebar-active-foreground: 0 0% 100%;
-    
-    /* UI Elements */
-    --radius: 8px;
-    --shadow-card: 0 1px 3px 0 rgba(60, 64, 67, 0.08);
-    --shadow-elevated: 0 4px 6px -1px rgba(60, 64, 67, 0.1);
-    
-    /* Interactive States */
-    --hover-overlay: 210 11% 13% / 0.04;
-    --focus-ring: 217 89% 51% / 0.2;
-    
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-hover)));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted)));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05)));
-    
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Gradient variables */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-hover)) 100%);
+    --gradient-subtle: linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--background)) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--primary)) 100%);
   }
-}
 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --primary-hover: 217.2 91.2% 54.8%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    
+    /* Dark mode additional colors */
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 144.9 80.4% 10%;
+    --warning: 47.9 95.8% 53.1%;
+    --warning-foreground: 26 83.3% 14.1%;
+    
+    /* Dark sidebar variables */
+    --sidebar-background: 224 71.4% 4.1%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-active: 217.2 91.2% 59.8%;
+    --sidebar-active-foreground: 222.2 84% 4.9%;
+  }
 
-@layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer components {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out;
   }
 
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 3px;
+  .shadow-card {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+  .shadow-elevated {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
+}
+
+@layer utilities {
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }

@@ -1,0 +1,232 @@
+[
+  {
+    "career_id": "software_developer",
+    "title": "Software Developer",
+    "description": "Design, develop, and maintain software applications and systems using various programming languages and frameworks.",
+    "avg_salary": 85000,
+    "entry_level_salary": 65000,
+    "demand_score": 92,
+    "key_skills": [
+      "Programming Languages (Python, JavaScript, Java)",
+      "Problem Solving",
+      "Software Architecture",
+      "Database Management",
+      "Version Control (Git)",
+      "Testing and Debugging"
+    ],
+    "education_requirements": "Bachelor's degree in Computer Science or related field",
+    "categories": ["Technology & Programming"],
+    "growth_trend": {
+      "5y_growth_pct": 25,
+      "explain": "Strong growth driven by digital transformation"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "data_scientist",
+    "title": "Data Scientist",
+    "description": "Analyze complex data to extract insights and support business decision-making using statistical methods and machine learning.",
+    "avg_salary": 95000,
+    "entry_level_salary": 70000,
+    "demand_score": 89,
+    "key_skills": [
+      "Python/R Programming",
+      "Statistics and Mathematics",
+      "Machine Learning",
+      "Data Visualization",
+      "SQL and Database Management",
+      "Business Intelligence"
+    ],
+    "education_requirements": "Bachelor's or Master's degree in Data Science, Statistics, or related field",
+    "categories": ["Technology & Programming", "Science & Research"],
+    "growth_trend": {
+      "5y_growth_pct": 35,
+      "explain": "Explosive growth in data-driven decision making"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "ux_designer",
+    "title": "UX/UI Designer",
+    "description": "Create intuitive and engaging user experiences for digital products through research, design, and testing.",
+    "avg_salary": 75000,
+    "entry_level_salary": 55000,
+    "demand_score": 85,
+    "key_skills": [
+      "User Research",
+      "Wireframing and Prototyping",
+      "Design Software (Figma, Sketch)",
+      "User Testing",
+      "Visual Design",
+      "Information Architecture"
+    ],
+    "education_requirements": "Bachelor's degree in Design, HCI, or related field",
+    "categories": ["Arts & Creative", "Technology & Programming"],
+    "growth_trend": {
+      "5y_growth_pct": 22,
+      "explain": "Growing emphasis on user experience in digital products"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "digital_marketer",
+    "title": "Digital Marketing Specialist",
+    "description": "Develop and execute online marketing strategies to promote brands, products, and services across digital channels.",
+    "avg_salary": 65000,
+    "entry_level_salary": 45000,
+    "demand_score": 88,
+    "key_skills": [
+      "SEO/SEM",
+      "Social Media Marketing",
+      "Content Creation",
+      "Google Analytics",
+      "Email Marketing",
+      "Marketing Automation"
+    ],
+    "education_requirements": "Bachelor's degree in Marketing, Communications, or related field",
+    "categories": ["Marketing & Communication", "Business & Finance"],
+    "growth_trend": {
+      "5y_growth_pct": 20,
+      "explain": "Continued shift toward digital marketing channels"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "project_manager",
+    "title": "Project Manager",
+    "description": "Plan, execute, and oversee projects from initiation to completion, ensuring delivery on time and within budget.",
+    "avg_salary": 80000,
+    "entry_level_salary": 60000,
+    "demand_score": 82,
+    "key_skills": [
+      "Project Planning",
+      "Risk Management",
+      "Team Leadership",
+      "Communication",
+      "Budgeting",
+      "Agile/Scrum Methodologies"
+    ],
+    "education_requirements": "Bachelor's degree and PMP certification preferred",
+    "categories": ["Business & Finance"],
+    "growth_trend": {
+      "5y_growth_pct": 15,
+      "explain": "Steady demand across all industries"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "cybersecurity_analyst",
+    "title": "Cybersecurity Analyst",
+    "description": "Protect organizations from cyber threats by monitoring security systems, investigating incidents, and implementing security measures.",
+    "avg_salary": 90000,
+    "entry_level_salary": 65000,
+    "demand_score": 95,
+    "key_skills": [
+      "Network Security",
+      "Threat Analysis",
+      "Security Tools (SIEM)",
+      "Incident Response",
+      "Risk Assessment",
+      "Compliance Frameworks"
+    ],
+    "education_requirements": "Bachelor's degree in Cybersecurity, IT, or related field",
+    "categories": ["Technology & Programming"],
+    "growth_trend": {
+      "5y_growth_pct": 32,
+      "explain": "Critical need due to increasing cyber threats"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "nurse_practitioner",
+    "title": "Nurse Practitioner",
+    "description": "Provide advanced nursing care, diagnose conditions, and prescribe treatments in various healthcare settings.",
+    "avg_salary": 110000,
+    "entry_level_salary": 85000,
+    "demand_score": 90,
+    "key_skills": [
+      "Clinical Assessment",
+      "Patient Care",
+      "Pharmacology",
+      "Health Promotion",
+      "Electronic Health Records",
+      "Critical Thinking"
+    ],
+    "education_requirements": "Master's degree in Nursing and RN license",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 28,
+      "explain": "Aging population driving healthcare demand"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "financial_analyst",
+    "title": "Financial Analyst",
+    "description": "Analyze financial data, create reports, and provide investment recommendations to guide business decisions.",
+    "avg_salary": 75000,
+    "entry_level_salary": 55000,
+    "demand_score": 78,
+    "key_skills": [
+      "Financial Modeling",
+      "Excel/Spreadsheet Analysis",
+      "Investment Analysis",
+      "Risk Assessment",
+      "Market Research",
+      "Financial Reporting"
+    ],
+    "education_requirements": "Bachelor's degree in Finance, Economics, or related field",
+    "categories": ["Business & Finance"],
+    "growth_trend": {
+      "5y_growth_pct": 12,
+      "explain": "Stable growth with business expansion"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "teacher",
+    "title": "Elementary School Teacher",
+    "description": "Educate and inspire young students, developing lesson plans and fostering a positive learning environment.",
+    "avg_salary": 50000,
+    "entry_level_salary": 40000,
+    "demand_score": 75,
+    "key_skills": [
+      "Curriculum Development",
+      "Classroom Management",
+      "Student Assessment",
+      "Communication",
+      "Patience and Empathy",
+      "Educational Technology"
+    ],
+    "education_requirements": "Bachelor's degree in Education and teaching certificate",
+    "categories": ["Education & Teaching"],
+    "growth_trend": {
+      "5y_growth_pct": 8,
+      "explain": "Steady demand for qualified educators"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "mechanical_engineer",
+    "title": "Mechanical Engineer",
+    "description": "Design, develop, and test mechanical devices, machines, and systems across various industries.",
+    "avg_salary": 82000,
+    "entry_level_salary": 62000,
+    "demand_score": 80,
+    "key_skills": [
+      "CAD Software (AutoCAD, SolidWorks)",
+      "Engineering Design",
+      "Materials Science",
+      "Thermodynamics",
+      "Project Management",
+      "Problem Solving"
+    ],
+    "education_requirements": "Bachelor's degree in Mechanical Engineering",
+    "categories": ["Engineering"],
+    "growth_trend": {
+      "5y_growth_pct": 18,
+      "explain": "Growth in manufacturing and renewable energy"
+    },
+    "work_life_balance": 3
+  }
+]

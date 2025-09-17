@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { apiService } from "@/services/api";
 
 interface SurveyQuestion {
   id: string;
@@ -17,144 +18,210 @@ interface SurveyQuestion {
   required: boolean;
 }
 
-const surveyQuestions: SurveyQuestion[] = [
-  {
-    id: "interests",
-    question: "What are your primary interests?",
-    type: "radio",
-    options: [
-      "Technology and Innovation",
-      "Business and Finance",
-      "Creative Arts and Design",
-      "Healthcare and Medicine", 
-      "Education and Training",
-      "Science and Research"
-    ],
-    required: true
-  },
-  {
-    id: "work_environment",
-    question: "What type of work environment do you prefer?",
-    type: "radio",
-    options: [
-      "Remote/Work from home",
-      "Traditional office setting",
-      "Hybrid (mix of remote and office)",
-      "Outdoor/Field work",
-      "Laboratory/Research facility",
-      "No preference"
-    ],
-    required: true
-  },
-  {
-    id: "experience_level",
-    question: "What is your current experience level?",
-    type: "radio",
-    options: [
-      "Entry level (0-2 years)",
-      "Mid-level (3-5 years)",
-      "Senior level (6-10 years)",
-      "Executive level (10+ years)",
-      "Student/New graduate"
-    ],
-    required: true
-  },
-  {
-    id: "education",
-    question: "What is your highest level of education?",
-    type: "radio",
-    options: [
-      "High School Diploma",
-      "Associate Degree",
-      "Bachelor's Degree",
-      "Master's Degree",
-      "Doctoral Degree",
-      "Professional Certification"
-    ],
-    required: true
-  },
-  {
-    id: "skills",
-    question: "What are your key skills? (Please list your top skills separated by commas)",
-    type: "textarea",
-    required: true
-  },
-  {
-    id: "salary_expectations",
-    question: "What are your salary expectations? (Annual in USD)",
-    type: "text",
-    required: false
-  },
-  {
-    id: "career_goals",
-    question: "What are your long-term career goals?",
-    type: "textarea",
-    required: true
-  }
-];
-
 export default function Survey() {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentStep, setCurrentStep] = useState<'initial' | 'adaptive' | 'complete'>('initial');
+  const [initialQuestions, setInitialQuestions] = useState<SurveyQuestion[]>([]);
+  const [adaptiveQuestions, setAdaptiveQuestions] = useState<SurveyQuestion[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<any>({});
   const navigate = useNavigate();
 
-  const progress = ((currentQuestion + 1) / surveyQuestions.length) * 100;
-  const question = surveyQuestions[currentQuestion];
+  useEffect(() => {
+    const initializeSession = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await apiService.startSession();
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        if (response.data?.questions) {
+          setInitialQuestions(response.data.questions);
+        } else {
+          throw new Error('No questions received from server');
+        }
+      } catch (error) {
+        console.error('Error initializing session:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load survey questions');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleAnswer = (value: string) => {
-    setAnswers(prev => ({
-      ...prev,
-      [question.id]: value
-    }));
+    initializeSession();
+  }, []);
+
+  const getCurrentQuestions = (): SurveyQuestion[] => {
+    if (currentStep === 'initial') return initialQuestions;
+    if (currentStep === 'adaptive') return adaptiveQuestions;
+    return [];
   };
 
-  const handleNext = () => {
-    if (currentQuestion < surveyQuestions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+  const currentQuestions = getCurrentQuestions();
+  const currentQuestion = currentQuestions[currentQuestionIndex] || null;
+  const progress = currentQuestions.length > 0 ? ((currentQuestionIndex + 1) / currentQuestions.length) * 100 : 0;
+
+  const handleNext = async () => {
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      handleSubmit();
+      // End of current step
+      if (currentStep === 'initial') {
+        await handleInitialComplete();
+      } else if (currentStep === 'adaptive') {
+        await handleSurveyComplete();
+      }
     }
   };
 
-  const handlePrevious = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
-    }
-  };
-
-  const handleSubmit = async () => {
+  const handleInitialComplete = async () => {
     setIsSubmitting(true);
-    
-    // Format answers for API
-    const formattedAnswers = surveyQuestions.map(q => ({
-      question: q.question,
-      answer: answers[q.id] || "",
-      type: q.type
-    }));
+    try {
+      // Prepare initial answers
+      const initialAnswers: any = {};
+      initialQuestions.forEach(q => {
+        if (answers[q.id]) {
+          initialAnswers[q.id] = answers[q.id];
+        }
+      });
 
-    // Store answers in localStorage for now (would be API call in real app)
-    localStorage.setItem('surveyData', JSON.stringify({
-      questions: formattedAnswers,
-      completedAt: new Date().toISOString()
-    }));
-
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    navigate('/recommendations');
+      const response = await apiService.submitInitialAnswers(initialAnswers);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      if (response.data?.adaptive_questions) {
+        setAdaptiveQuestions(response.data.adaptive_questions);
+        setSessionData({ ...initialAnswers, ...response.data.session_data });
+        setCurrentStep('adaptive');
+        setCurrentQuestionIndex(0);
+      } else {
+        // If no adaptive questions, go directly to completion
+        await handleSurveyComplete();
+      }
+    } catch (error) {
+      console.error('Error submitting initial answers:', error);
+      setError(error instanceof Error ? error.message : 'Failed to submit answers');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const canProceed = !question.required || answers[question.id];
+  const handleSurveyComplete = async () => {
+    setIsSubmitting(true);
+    try {
+      // Combine all answers
+      const allAnswers = { ...sessionData };
+      
+      // Add initial answers if not already in sessionData
+      initialQuestions.forEach(q => {
+        if (answers[q.id] && !allAnswers[q.id]) {
+          allAnswers[q.id] = answers[q.id];
+        }
+      });
+      
+      // Add adaptive answers
+      adaptiveQuestions.forEach(q => {
+        if (answers[q.id]) {
+          allAnswers[q.id] = answers[q.id];
+        }
+      });
+
+      const response = await apiService.completeSurvey(allAnswers);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      // Store results and navigate to recommendations
+      localStorage.setItem('surveyResults', JSON.stringify({
+        sessionData: allAnswers,
+        recommendations: response.data?.recommendations || [],
+        completedAt: new Date().toISOString()
+      }));
+      navigate('/recommendations');
+    } catch (error) {
+      console.error('Error completing survey:', error);
+      setError(error instanceof Error ? error.message : 'Failed to complete survey');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const canProceed = !currentQuestion?.required || answers[currentQuestion.id];
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-medium text-foreground">Loading Survey...</h1>
+          <p className="text-muted-foreground mt-2">Preparing your career discovery questions</p>
+        </div>
+        <Card className="shadow-card">
+          <CardContent className="pt-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-muted rounded w-3/4"></div>
+              <div className="h-4 bg-muted rounded w-1/2"></div>
+              <div className="h-8 bg-muted rounded w-full"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-medium text-foreground">Error Loading Survey</h1>
+          <p className="text-muted-foreground mt-2">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="mt-4"
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // No current question available
+  if (!currentQuestion) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-medium text-foreground">No Questions Available</h1>
+          <p className="text-muted-foreground mt-2">Unable to load survey questions. Please try again.</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="mt-4"
+          >
+            Reload Survey
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-medium text-foreground">Career Discovery Survey</h1>
+        <h1 className="text-3xl font-medium text-foreground">
+          {currentStep === 'initial' ? 'Career Discovery Survey' : 'Follow-up Questions'}
+        </h1>
         <p className="text-muted-foreground mt-2">
-          Help us understand your preferences to provide personalized career recommendations
+          {currentStep === 'initial' 
+            ? 'Tell us about your background and interests'
+            : 'Help us understand your preferences better'
+          }
         </p>
       </div>
 
@@ -163,7 +230,8 @@ export default function Survey() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">
-              Question {currentQuestion + 1} of {surveyQuestions.length}
+              {currentStep === 'initial' ? 'Initial Questions' : 'Follow-up Questions'} - 
+              Question {currentQuestionIndex + 1} of {currentQuestions.length}
             </span>
             <span className="text-sm font-medium text-foreground">{Math.round(progress)}%</span>
           </div>
@@ -175,22 +243,22 @@ export default function Survey() {
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="text-xl font-medium">
-            {question.question}
+            {currentQuestion.question}
           </CardTitle>
-          {question.required && (
+          {currentQuestion.required && (
             <CardDescription>
               This question is required
             </CardDescription>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
-          {question.type === "radio" && question.options && (
+          {currentQuestion.type === "radio" && currentQuestion.options && (
             <RadioGroup 
-              value={answers[question.id] || ""} 
-              onValueChange={handleAnswer}
+              value={answers[currentQuestion.id] || ""} 
+              onValueChange={(value) => setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }))}
               className="space-y-3"
             >
-              {question.options.map((option, index) => (
+              {currentQuestion.options.map((option, index) => (
                 <div key={index} className="flex items-center space-x-3">
                   <RadioGroupItem value={option} id={`option-${index}`} />
                   <Label 
@@ -204,19 +272,19 @@ export default function Survey() {
             </RadioGroup>
           )}
 
-          {question.type === "textarea" && (
+          {currentQuestion.type === "textarea" && (
             <Textarea
-              value={answers[question.id] || ""}
-              onChange={(e) => handleAnswer(e.target.value)}
+              value={answers[currentQuestion.id] || ""}
+              onChange={(e) => setAnswers(prev => ({ ...prev, [currentQuestion.id]: e.target.value }))}
               placeholder="Please provide your answer..."
               className="min-h-[120px] resize-none"
             />
           )}
 
-          {question.type === "text" && (
+          {currentQuestion.type === "text" && (
             <Input
-              value={answers[question.id] || ""}
-              onChange={(e) => handleAnswer(e.target.value)}
+              value={answers[currentQuestion.id] || ""}
+              onChange={(e) => setAnswers(prev => ({ ...prev, [currentQuestion.id]: e.target.value }))}
               placeholder="Enter your answer..."
             />
           )}
@@ -227,8 +295,8 @@ export default function Survey() {
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
-          onClick={handlePrevious}
-          disabled={currentQuestion === 0}
+          onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+          disabled={currentQuestionIndex === 0}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -240,18 +308,21 @@ export default function Survey() {
           disabled={!canProceed || isSubmitting}
           className="bg-primary hover:bg-primary-hover text-primary-foreground flex items-center gap-2"
         >
-          {isSubmitting ? (
-            "Processing..."
-          ) : currentQuestion === surveyQuestions.length - 1 ? (
-            "Get Recommendations"
-          ) : (
-            <>
-              Next
-              <ArrowRight className="h-4 w-4" />
-            </>
-          )}
+          {isSubmitting ? "Processing..." : 
+           currentQuestionIndex === currentQuestions.length - 1 ? 
+           (currentStep === 'adaptive' ? "Get Recommendations" : "Continue") : 
+           <>Next <ArrowRight className="h-4 w-4" /></>}
         </Button>
       </div>
+
+      {/* Error display */}
+      {error && (
+        <Card className="shadow-card border-destructive">
+          <CardContent className="pt-6">
+            <p className="text-destructive text-sm">{error}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

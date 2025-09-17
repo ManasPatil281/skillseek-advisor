@@ -1,233 +1,387 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, MapPin, Star, MessageCircle, Briefcase, Search } from "lucide-react";
-
-interface Mentor {
-  id: string;
-  name: string;
-  title: string;
-  company: string;
-  location: string;
-  experience_years: number;
-  rating: number;
-  total_sessions: number;
-  specialties: string[];
-  bio: string;
-  avatar?: string;
-}
-
-const mockMentors: Mentor[] = [
-  {
-    id: "1",
-    name: "Sarah Chen",
-    title: "Senior Software Engineer",
-    company: "Google",
-    location: "San Francisco, CA",
-    experience_years: 8,
-    rating: 4.9,
-    total_sessions: 127,
-    specialties: ["React", "Python", "System Design", "Career Growth"],
-    bio: "Passionate about helping new developers navigate their career journey in tech. Specialized in full-stack development and system architecture."
-  },
-  {
-    id: "2", 
-    name: "Marcus Johnson",
-    title: "Data Science Manager",
-    company: "Netflix",
-    location: "Los Angeles, CA",
-    experience_years: 12,
-    rating: 4.8,
-    total_sessions: 89,
-    specialties: ["Machine Learning", "Python", "Leadership", "Data Strategy"],
-    bio: "Leading data science teams to drive business impact through ML. Love mentoring aspiring data scientists and helping them develop both technical and leadership skills."
-  },
-  {
-    id: "3",
-    name: "Emily Rodriguez",
-    title: "Product Manager",
-    company: "Microsoft",
-    location: "Seattle, WA", 
-    experience_years: 6,
-    rating: 4.7,
-    total_sessions: 156,
-    specialties: ["Product Strategy", "User Research", "Agile", "Stakeholder Management"],
-    bio: "Product leader with experience launching consumer and enterprise products. Passionate about user-centered design and data-driven product decisions."
-  },
-  {
-    id: "4",
-    name: "David Kim",
-    title: "UX Design Director",
-    company: "Spotify",
-    location: "New York, NY",
-    experience_years: 10,
-    rating: 4.9,
-    total_sessions: 203,
-    specialties: ["UI/UX Design", "Design Systems", "User Research", "Creative Leadership"],
-    bio: "Design leader focused on creating intuitive user experiences. Enjoy helping designers grow their skills and build impactful products."
-  }
-];
+import { Star, Search, MessageCircle, Calendar, MapPin, Briefcase, Users } from "lucide-react";
+import { apiService, type Mentor } from "@/services/api";
 
 export default function Mentors() {
-  const [mentors] = useState<Mentor[]>(mockMentors);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
+  const [selectedExpertise, setSelectedExpertise] = useState<string>("all");
+  const [isPersonalized, setIsPersonalized] = useState(false);
 
-  // Get all unique specialties for filter
-  const allSpecialties = Array.from(
-    new Set(mentors.flatMap(mentor => mentor.specialties))
-  ).sort();
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Check if we have mentor matching data from recommendations
+        const mentorMatchingData = localStorage.getItem('mentorMatchingData');
+        
+        if (mentorMatchingData) {
+          try {
+            const { careers, sessionData } = JSON.parse(mentorMatchingData);
+            console.log('Using personalized mentor matching for careers:', careers);
+            
+            // Validate the data
+            if (!careers || !Array.isArray(careers) || careers.length === 0) {
+              throw new Error('Invalid career data for mentor matching');
+            }
+            
+            // Get mentors for the top career recommendation
+            const topCareer = careers[0];
+            console.log('Fetching personalized mentors for career:', topCareer.title);
 
-  // Filter mentors based on search and specialty
-  const filteredMentors = mentors.filter(mentor => {
-    const matchesSearch = mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mentor.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mentor.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mentor.specialties.some(specialty => 
-                           specialty.toLowerCase().includes(searchTerm.toLowerCase())
-                         );
-    
-    const matchesSpecialty = selectedSpecialty === "all" || 
-                            mentor.specialties.includes(selectedSpecialty);
-    
-    return matchesSearch && matchesSpecialty;
-  });
+            const response = await apiService.getPersonalizedMentors(topCareer, sessionData || {});
+
+            if (response.error) {
+              console.warn('Personalized mentor matching failed:', response.error);
+              throw new Error(response.error);
+            }
+
+            const mentorsData = response.data?.mentors || [];
+            console.log('Received personalized mentors:', mentorsData.length);
+
+            if (mentorsData.length > 0) {
+              setMentors(mentorsData);
+              setFilteredMentors(mentorsData);
+              setIsPersonalized(true);
+              // Clear the matching data after successful use
+              localStorage.removeItem('mentorMatchingData');
+              return;
+            } else {
+              console.warn('No personalized mentors found, falling back to regular mentors');
+              throw new Error('No personalized mentors found');
+            }
+          } catch (personalizedError) {
+            console.error('Error with personalized mentor matching:', personalizedError);
+            // Clear invalid data
+            localStorage.removeItem('mentorMatchingData');
+            // Fall through to regular mentor loading
+          }
+        }
+        
+        // Fall back to regular mentor loading
+        console.log('Loading regular mentors');
+        const response = await apiService.getMentors();
+        
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        // Handle both direct array and wrapped object responses
+        let mentorsData = [];
+        if (Array.isArray(response.data)) {
+          mentorsData = response.data;
+        } else if (response.data?.mentors && Array.isArray(response.data.mentors)) {
+          mentorsData = response.data.mentors;
+        } else {
+          throw new Error('Invalid mentor data format received from server');
+        }
+
+        console.log('Loaded regular mentors:', mentorsData.length);
+        setMentors(mentorsData);
+        setFilteredMentors(mentorsData);
+        setIsPersonalized(false);
+        
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch mentors';
+        setError(errorMessage);
+        console.error('Error fetching mentors:', err);
+        
+        // Set empty arrays to prevent further errors
+        setMentors([]);
+        setFilteredMentors([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMentors();
+  }, []);
+
+  useEffect(() => {
+    // Ensure mentors is an array before filtering
+    if (!Array.isArray(mentors)) {
+      console.warn('Mentors is not an array:', mentors);
+      setFilteredMentors([]);
+      return;
+    }
+
+    let filtered = [...mentors]; // Create a copy to avoid mutations
+
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(mentor => {
+        if (!mentor) return false;
+        
+        const name = mentor.name?.toLowerCase() || '';
+        const title = mentor.title?.toLowerCase() || '';
+        const company = mentor.company?.toLowerCase() || '';
+        const expertise = Array.isArray(mentor.expertise) 
+          ? mentor.expertise.some(exp => exp?.toLowerCase().includes(searchLower))
+          : false;
+        
+        return name.includes(searchLower) || 
+               title.includes(searchLower) || 
+               company.includes(searchLower) || 
+               expertise;
+      });
+    }
+
+    // Filter by expertise
+    if (selectedExpertise !== "all") {
+      filtered = filtered.filter(mentor => 
+        mentor?.expertise && 
+        Array.isArray(mentor.expertise) && 
+        mentor.expertise.includes(selectedExpertise)
+      );
+    }
+
+    setFilteredMentors(filtered);
+  }, [mentors, searchTerm, selectedExpertise]);
+
+  const renderStars = (rating: number) => {
+    const validRating = Math.max(0, Math.min(5, rating || 0)); // Ensure rating is between 0-5
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${
+          i < validRating ? "text-warning fill-warning" : "text-muted-foreground"
+        }`}
+      />
+    ));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-medium text-foreground">Loading Mentors...</h1>
+          <p className="text-muted-foreground mt-2">Finding the best mentors for you</p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="shadow-card">
+              <CardContent className="pt-6">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/2"></div>
+                  <div className="h-4 bg-muted rounded w-full"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-medium text-foreground">Error Loading Mentors</h1>
+          <p className="text-muted-foreground mt-2">{error}</p>
+          <div className="flex gap-4 justify-center mt-4">
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+            <Button variant="outline" onClick={() => {
+              localStorage.removeItem('mentorMatchingData');
+              window.location.reload();
+            }}>
+              Load Regular Mentors
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract all unique expertise safely
+  const allExpertise = Array.isArray(mentors) ? Array.from(
+    new Set(
+      mentors
+        .filter(mentor => mentor?.expertise && Array.isArray(mentor.expertise))
+        .flatMap(mentor => mentor.expertise || [])
+        .filter(exp => exp && typeof exp === 'string')
+    )
+  ) : [];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div>
+      <div className="text-center">
         <h1 className="text-3xl font-medium text-foreground">Find Your Mentor</h1>
         <p className="text-muted-foreground mt-2">
           Connect with experienced professionals who can guide your career journey
         </p>
+        {isPersonalized && (
+          <Badge className="mt-2 bg-success/10 text-success hover:bg-success/20">
+            Personalized Results
+          </Badge>
+        )}
       </div>
 
       {/* Filters */}
       <Card className="shadow-card">
-        <CardContent className="pt-6">
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">Filter Mentors</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search mentors by name, title, company, or skills..."
+                  placeholder="Search by name, title, company, or expertise..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-              <SelectTrigger className="w-full md:w-64">
-                <SelectValue placeholder="Filter by specialty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Specialties</SelectItem>
-                {allSpecialties.map(specialty => (
-                  <SelectItem key={specialty} value={specialty}>
-                    {specialty}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="md:w-48">
+              <Select value={selectedExpertise} onValueChange={setSelectedExpertise}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Expertise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Expertise</SelectItem>
+                  {allExpertise.map((expertise) => (
+                    <SelectItem key={expertise} value={expertise}>
+                      {expertise}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Results Summary */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredMentors.length} of {mentors.length} mentors
-        </p>
+      {/* Results Count */}
+      <div className="text-sm text-muted-foreground">
+        Showing {filteredMentors.length} of {mentors.length} mentors
+        {isPersonalized && <span className="text-success"> (Personalized)</span>}
       </div>
 
       {/* Mentors Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredMentors.map((mentor) => (
-          <Card key={mentor.id} className="shadow-card hover:shadow-elevated transition-shadow">
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User className="h-8 w-8 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg font-medium truncate">
-                    {mentor.name}
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    {mentor.title} at {mentor.company}
-                  </CardDescription>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {mentor.location}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Briefcase className="h-3 w-3" />
-                      {mentor.experience_years} years exp
-                    </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {Array.isArray(filteredMentors) && filteredMentors.map((mentor) => {
+          if (!mentor || !mentor.id) return null;
+          
+          return (
+            <Card key={mentor.id} className="shadow-card hover:shadow-elevated transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg font-medium">{mentor.name || 'Unknown Name'}</CardTitle>
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                      <Briefcase className="h-4 w-4" />
+                      {mentor.title || 'Unknown Title'} at {mentor.company || 'Unknown Company'}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {renderStars(mentor.rating)}
+                    <span className="text-sm text-muted-foreground ml-1">
+                      ({mentor.rating || 0})
+                    </span>
                   </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {mentor.bio}
-              </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {mentor.bio || 'No bio available'}
+                </p>
 
-              {/* Specialties */}
-              <div>
-                <div className="flex flex-wrap gap-2">
-                  {mentor.specialties.map((specialty) => (
-                    <Badge 
-                      key={specialty} 
-                      variant="secondary" 
-                      className="text-xs bg-muted text-muted-foreground"
-                    >
-                      {specialty}
+                {/* Expertise */}
+                <div>
+                  <p className="text-sm font-medium mb-2">Expertise:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.isArray(mentor.expertise) && mentor.expertise.length > 0 ? (
+                      <>
+                        {mentor.expertise.slice(0, 3).map((skill, index) => (
+                          <Badge key={`${skill}-${index}`} variant="secondary" className="text-xs">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {mentor.expertise.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{mentor.expertise.length - 3} more
+                          </Badge>
+                        )}
+                      </>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        No expertise listed
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Availability */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>{mentor.availability || 'Availability not specified'}</span>
+                </div>
+
+                {/* Match Score (if personalized) */}
+                {isPersonalized && mentor.match_score && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge className="bg-success/10 text-success">
+                      {mentor.match_score}% Match
                     </Badge>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                )}
 
-              {/* Stats */}
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-warning fill-current" />
-                    <span className="font-medium">{mentor.rating}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-4 w-4 text-primary" />
-                    <span className="text-muted-foreground">{mentor.total_sessions} sessions</span>
-                  </div>
+                {/* Actions */}
+                <div className="flex gap-2 pt-2">
+                  <Button size="sm" className="flex-1">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Connect
+                  </Button>
+                  <Button size="sm" variant="outline">
+                    View Profile
+                  </Button>
                 </div>
-                <Button size="sm" className="bg-primary hover:bg-primary-hover text-primary-foreground">
-                  Connect
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Empty State */}
-      {filteredMentors.length === 0 && (
-        <Card className="shadow-card">
-          <CardContent className="pt-12 pb-12 text-center">
-            <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">No mentors found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search terms or filters to find more mentors.
+      {Array.isArray(filteredMentors) && filteredMentors.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <div className="text-muted-foreground">
+            <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg">No mentors found</p>
+            <p className="text-sm">
+              {searchTerm || selectedExpertise !== "all" 
+                ? "Try adjusting your search criteria" 
+                : "No mentors are currently available"}
             </p>
-          </CardContent>
-        </Card>
+            {(searchTerm || selectedExpertise !== "all") && (
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedExpertise("all");
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
