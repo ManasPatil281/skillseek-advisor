@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export function Header({ onToggleSidebar, sidebarOpen }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 shadow-card">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-sm border-b border-border/50 z-50 shadow-card">
       <div className="flex items-center justify-between h-full px-4">
         {/* Left Section */}
         <div className="flex items-center gap-4">
@@ -17,16 +17,16 @@ export function Header({ onToggleSidebar, sidebarOpen }: HeaderProps) {
             variant="ghost"
             size="sm"
             onClick={onToggleSidebar}
-            className="p-2 hover:bg-muted"
+            className="p-2 hover:bg-muted transition-colors"
           >
             <Menu className="h-5 w-5" />
           </Button>
           
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center shadow-md">
               <span className="text-primary-foreground font-bold text-sm">CC</span>
             </div>
-            <h1 className="text-xl font-medium text-foreground">CareerCompass</h1>
+            <h1 className="text-xl font-semibold text-foreground">CareerCompass</h1>
           </div>
         </div>
 
@@ -36,14 +36,14 @@ export function Header({ onToggleSidebar, sidebarOpen }: HeaderProps) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search careers, skills, or mentors..."
-              className="pl-10 bg-muted/50 border-border focus:bg-card"
+              className="pl-10 bg-muted/30 border-border/50 focus:bg-card focus:border-primary/50 transition-all duration-200"
             />
           </div>
         </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="p-2">
+          <Button variant="ghost" size="sm" className="p-2 hover:bg-muted transition-colors">
             <User className="h-5 w-5" />
           </Button>
         </div>
