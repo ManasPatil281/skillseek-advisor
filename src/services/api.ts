@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://skillseek-advisor.onrender.com';
 
 interface ApiResponse<T> {
   data: T;
@@ -181,8 +181,19 @@ class ApiService {
 
   async getPersonalizedMentors(selectedCareer: any, sessionData: any): Promise<ApiResponse<{ mentors: Mentor[]; count: number; career: string; personalized: boolean }>> {
     // This method is no longer needed since we're using matchMentors
-    // Keeping it for backward compatibility but redirecting to matchMentors
-    return this.matchMentors(selectedCareer, sessionData);
+    // Keeping it for backward compatibility but adapting the matchMentors response
+    const res = await this.matchMentors(selectedCareer, sessionData);
+
+    if (res.error) {
+      return { data: null as any, error: res.error };
+    }
+
+    const payload = res.data as { mentors?: Mentor[]; count?: number } | null;
+    const mentors = payload?.mentors ?? [];
+    const count = payload?.count ?? 0;
+    const career = typeof selectedCareer === 'string' ? selectedCareer : (selectedCareer?.career || '');
+
+    return { data: { mentors, count, career, personalized: false } };
   }
 
   async generateLearningRoadmap(careerData: any, userProfile: any): Promise<ApiResponse<LearningRoadmap>> {
@@ -280,4 +291,4 @@ class ApiService {
 
 export const apiService = new ApiService();
 export type { CareerRecommendation, SessionData, Mentor };
-export type { CareerRecommendation, SessionData, Mentor };
+
