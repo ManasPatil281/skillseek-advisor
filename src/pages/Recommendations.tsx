@@ -11,88 +11,51 @@ export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<any>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [selectedCareer, setSelectedCareer] = useState<CareerRecommendation | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      // Check if survey results exist (from new flow)
-      const surveyResults = localStorage.getItem('surveyResults');
-      const oldSurveyData = localStorage.getItem('surveyData');
-      
-      if (!surveyResults && !oldSurveyData) {
-        navigate('/survey');
-        return;
-      }
-
+    const loadRecommendations = async () => {
       try {
         setIsLoading(true);
         
-        let sessionData;
-        let existingRecommendations;
+        // First check localStorage for fresh survey results
+        const surveyResults = localStorage.getItem('surveyResults');
+        console.log('Survey results from localStorage:', surveyResults);
         
         if (surveyResults) {
-          // New flow - recommendations already generated
-          const parsedResults = JSON.parse(surveyResults);
-          existingRecommendations = parsedResults.recommendations;
-          sessionData = parsedResults.sessionData;
+          const { recommendations, sessionData, sessionId } = JSON.parse(surveyResults);
+          console.log('Parsed recommendations:', recommendations);
+          console.log('Number of recommendations:', recommendations?.length);
+          
+          if (recommendations && recommendations.length > 0) {
+            setRecommendations(recommendations);
+            setSessionData(sessionData);
+            setCurrentSessionId(sessionId);
+            
+            // Set default selected career
+            if (!selectedCareer) {
+              setSelectedCareer(recommendations[0]);
+            }
+            return;
+          }
         }
         
-        if (existingRecommendations && existingRecommendations.length > 0) {
-          // Use existing recommendations
-          setRecommendations(existingRecommendations);
-          
-          // Generate learning roadmaps for the top 3 careers
-          const roadmapPromises = existingRecommendations.slice(0, 3).map(async (career: any) => {
-            const response = await apiService.generateLearningRoadmap(career, sessionData);
-            return response.data;
-          });
-          
-          const roadmaps = await Promise.all(roadmapPromises);
-          const validRoadmaps = roadmaps.filter((roadmap): roadmap is LearningRoadmap => !!roadmap && !((roadmap as any).error));
-          
-          // Store roadmaps in localStorage
-          localStorage.setItem('learningRoadmaps', JSON.stringify(validRoadmaps));
-        } else {
-          // Fallback to old flow or generate new recommendations
-          const dataToUse = surveyResults ? JSON.parse(surveyResults).sessionData : JSON.parse(oldSurveyData);
-          
-          const response = await apiService.getRecommendations({
-            questions: dataToUse.questions || [],
-            user_id: null,
-            timestamp: dataToUse.completedAt || new Date().toISOString(),
-          });
-          
-          if (response.error) {
-            throw new Error(response.error);
-          }
-
-          const recommendationsData = response.data?.recommendations || response.data || [];
-          setRecommendations(Array.isArray(recommendationsData) ? recommendationsData : []);
-          
-          // Generate learning roadmaps for new recommendations
-          if (Array.isArray(recommendationsData) && recommendationsData.length > 0) {
-            const roadmapPromises = recommendationsData.slice(0, 3).map(async (career: any) => {
-              const response = await apiService.generateLearningRoadmap(career, dataToUse);
-              return response.data;
-            });
-            
-            const roadmaps = await Promise.all(roadmapPromises);
-            const validRoadmaps = roadmaps.filter((roadmap): roadmap is LearningRoadmap => !!roadmap && !((roadmap as any).error));
-            
-            // Store roadmaps in localStorage
-            localStorage.setItem('learningRoadmaps', JSON.stringify(validRoadmaps));
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch recommendations');
-        console.error('Error fetching recommendations:', err);
+        console.log('No valid recommendations found, redirecting to survey');
+        navigate('/survey');
+        
+      } catch (error) {
+        console.error('Error loading recommendations:', error);
+        setError('Failed to load recommendations. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchRecommendations();
-  }, [navigate]);
+    loadRecommendations();
+  }, [navigate, selectedCareer]);
 
   const formatSalary = (salary: number) => {
     return new Intl.NumberFormat('en-US', {

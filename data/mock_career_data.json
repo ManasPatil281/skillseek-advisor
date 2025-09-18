@@ -228,5 +228,626 @@
       "explain": "Growth in manufacturing and renewable energy"
     },
     "work_life_balance": 3
-  }
-]
+  },
+  {
+    "career_id": "ai_engineer",
+    "title": "AI/Machine Learning Engineer",
+    "description": "Design and implement artificial intelligence systems and machine learning models to solve complex problems.",
+    "avg_salary": 130000,
+    "entry_level_salary": 95000,
+    "demand_score": 96,
+    "key_skills": [
+      "Deep Learning Frameworks (TensorFlow, PyTorch)",
+      "Neural Networks",
+      "Natural Language Processing",
+      "Computer Vision",
+      "MLOps and Model Deployment",
+      "Algorithm Optimization"
+    ],
+    "education_requirements": "Master's degree in Computer Science, AI, or related field",
+    "categories": ["Technology & Programming", "Science & Research"],
+    "growth_trend": {
+      "5y_growth_pct": 45,
+      "explain": "Revolutionary AI adoption across industries"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "cloud_architect",
+    "title": "Cloud Solutions Architect",
+    "description": "Design and oversee cloud computing strategies and infrastructure for organizations.",
+    "avg_salary": 125000,
+    "entry_level_salary": 85000,
+    "demand_score": 94,
+    "key_skills": [
+      "AWS/Azure/GCP Platforms",
+      "Cloud Security",
+      "Infrastructure as Code",
+      "Microservices Architecture",
+      "DevOps Practices",
+      "Cost Optimization"
+    ],
+    "education_requirements": "Bachelor's degree in IT/CS and cloud certifications",
+    "categories": ["Technology & Programming"],
+    "growth_trend": {
+      "5y_growth_pct": 38,
+      "explain": "Massive cloud migration and digital transformation"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "physician",
+    "title": "Primary Care Physician",
+    "description": "Diagnose and treat patients, provide preventive care, and coordinate comprehensive healthcare services.",
+    "avg_salary": 220000,
+    "entry_level_salary": 180000,
+    "demand_score": 88,
+    "key_skills": [
+      "Clinical Diagnosis",
+      "Medical Procedures",
+      "Patient Communication",
+      "Medical Records Management",
+      "Continuing Medical Education",
+      "Ethical Decision Making"
+    ],
+    "education_requirements": "Medical degree, residency, and medical license",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 16,
+      "explain": "Growing healthcare needs and aging population"
+    },
+    "work_life_balance": 2
+  },
+  {
+    "career_id": "lawyer",
+    "title": "Corporate Lawyer",
+    "description": "Provide legal advice to businesses, handle contracts, compliance, and represent clients in legal matters.",
+    "avg_salary": 140000,
+    "entry_level_salary": 85000,
+    "demand_score": 72,
+    "key_skills": [
+      "Legal Research",
+      "Contract Negotiation",
+      "Litigation Management",
+      "Regulatory Compliance",
+      "Client Relations",
+      "Legal Writing"
+    ],
+    "education_requirements": "Juris Doctor degree and bar admission",
+    "categories": ["Legal & Government"],
+    "growth_trend": {
+      "5y_growth_pct": 9,
+      "explain": "Steady demand for corporate legal services"
+    },
+    "work_life_balance": 2
+  },
+  {
+    "career_id": "psychologist",
+    "title": "Clinical Psychologist",
+    "description": "Assess, diagnose, and treat mental health disorders through therapy and psychological interventions.",
+    "avg_salary": 95000,
+    "entry_level_salary": 65000,
+    "demand_score": 86,
+    "key_skills": [
+      "Psychological Assessment",
+      "Therapeutic Techniques",
+      "Mental Health Diagnosis",
+      "Research Methods",
+      "Empathetic Listening",
+      "Treatment Planning"
+    ],
+    "education_requirements": "Doctoral degree in Psychology and licensure",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 24,
+      "explain": "Increased awareness of mental health importance"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "chef",
+    "title": "Executive Chef",
+    "description": "Lead kitchen operations, create menus, manage culinary staff, and ensure food quality standards.",
+    "avg_salary": 68000,
+    "entry_level_salary": 35000,
+    "demand_score": 79,
+    "key_skills": [
+      "Culinary Arts",
+      "Menu Development",
+      "Kitchen Management",
+      "Food Safety",
+      "Cost Control",
+      "Team Leadership"
+    ],
+    "education_requirements": "Culinary arts degree or extensive experience",
+    "categories": ["Arts & Creative", "Service & Hospitality"],
+    "growth_trend": {
+      "5y_growth_pct": 14,
+      "explain": "Growing food industry and culinary tourism"
+    },
+    "work_life_balance": 2
+  },
+  {
+    "career_id": "renewable_engineer",
+    "title": "Renewable Energy Engineer",
+    "description": "Design and develop sustainable energy systems including solar, wind, and other renewable technologies.",
+    "avg_salary": 88000,
+    "entry_level_salary": 68000,
+    "demand_score": 91,
+    "key_skills": [
+      "Solar/Wind System Design",
+      "Energy Storage Systems",
+      "Grid Integration",
+      "Environmental Assessment",
+      "Project Development",
+      "Sustainability Analysis"
+    ],
+    "education_requirements": "Bachelor's degree in Engineering or related field",
+    "categories": ["Engineering", "Science & Research"],
+    "growth_trend": {
+      "5y_growth_pct": 42,
+      "explain": "Global push for clean energy transition"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "pharmacist",
+    "title": "Clinical Pharmacist",
+    "description": "Dispense medications, provide drug information, and collaborate with healthcare teams on patient care.",
+    "avg_salary": 128000,
+    "entry_level_salary": 110000,
+    "demand_score": 83,
+    "key_skills": [
+      "Pharmacology",
+      "Drug Interactions",
+      "Patient Counseling",
+      "Medication Therapy Management",
+      "Healthcare Collaboration",
+      "Regulatory Compliance"
+    ],
+    "education_requirements": "Doctor of Pharmacy degree and licensure",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 6,
+      "explain": "Stable demand with aging population"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "architect",
+    "title": "Architect",
+    "description": "Design buildings and structures, create construction plans, and oversee building projects from concept to completion.",
+    "avg_salary": 82000,
+    "entry_level_salary": 55000,
+    "demand_score": 76,
+    "key_skills": [
+      "Architectural Design",
+      "CAD Software (AutoCAD, Revit)",
+      "Building Codes",
+      "Project Management",
+      "3D Modeling",
+      "Sustainable Design"
+    ],
+    "education_requirements": "Bachelor's degree in Architecture and licensure",
+    "categories": ["Arts & Creative", "Engineering"],
+    "growth_trend": {
+      "5y_growth_pct": 11,
+      "explain": "Infrastructure development and urbanization"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "veterinarian",
+    "title": "Veterinarian",
+    "description": "Diagnose and treat animals, perform surgeries, and provide preventive care for pets and livestock.",
+    "avg_salary": 105000,
+    "entry_level_salary": 80000,
+    "demand_score": 81,
+    "key_skills": [
+      "Animal Medicine",
+      "Surgical Procedures",
+      "Diagnostic Imaging",
+      "Animal Behavior",
+      "Client Communication",
+      "Emergency Care"
+    ],
+    "education_requirements": "Doctor of Veterinary Medicine degree",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 19,
+      "explain": "Increased pet ownership and animal welfare focus"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "physical_therapist",
+    "title": "Physical Therapist",
+    "description": "Help patients recover from injuries and improve physical function through exercise and therapeutic techniques.",
+    "avg_salary": 89000,
+    "entry_level_salary": 70000,
+    "demand_score": 87,
+    "key_skills": [
+      "Movement Assessment",
+      "Therapeutic Exercise",
+      "Manual Therapy",
+      "Patient Education",
+      "Treatment Planning",
+      "Rehabilitation Protocols"
+    ],
+    "education_requirements": "Doctor of Physical Therapy degree and licensure",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 21,
+      "explain": "Aging population and sports medicine growth"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "interior_designer",
+    "title": "Interior Designer",
+    "description": "Create functional and aesthetically pleasing interior spaces for residential and commercial properties.",
+    "avg_salary": 58000,
+    "entry_level_salary": 38000,
+    "demand_score": 74,
+    "key_skills": [
+      "Space Planning",
+      "Color Theory",
+      "Design Software (SketchUp, AutoCAD)",
+      "Material Selection",
+      "Client Consultation",
+      "Project Coordination"
+    ],
+    "education_requirements": "Bachelor's degree in Interior Design or related field",
+    "categories": ["Arts & Creative"],
+    "growth_trend": {
+      "5y_growth_pct": 13,
+      "explain": "Growth in residential and commercial construction"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "social_worker",
+    "title": "Clinical Social Worker",
+    "description": "Provide counseling and support services to individuals, families, and communities facing various challenges.",
+    "avg_salary": 55000,
+    "entry_level_salary": 42000,
+    "demand_score": 84,
+    "key_skills": [
+      "Case Management",
+      "Crisis Intervention",
+      "Counseling Techniques",
+      "Community Resources",
+      "Cultural Competency",
+      "Documentation"
+    ],
+    "education_requirements": "Master's degree in Social Work and licensure",
+    "categories": ["Social Services", "Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 17,
+      "explain": "Increased focus on mental health and social services"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "environmental_scientist",
+    "title": "Environmental Scientist",
+    "description": "Study environmental problems, conduct research, and develop solutions to protect human health and the environment.",
+    "avg_salary": 72000,
+    "entry_level_salary": 52000,
+    "demand_score": 80,
+    "key_skills": [
+      "Environmental Monitoring",
+      "Data Analysis",
+      "Field Research",
+      "Regulatory Compliance",
+      "Report Writing",
+      "GIS Mapping"
+    ],
+    "education_requirements": "Bachelor's degree in Environmental Science or related field",
+    "categories": ["Science & Research"],
+    "growth_trend": {
+      "5y_growth_pct": 15,
+      "explain": "Growing environmental awareness and regulations"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "journalist",
+    "title": "Digital Journalist",
+    "description": "Research, write, and report news stories across digital platforms, conducting interviews and fact-checking information.",
+    "avg_salary": 48000,
+    "entry_level_salary": 32000,
+    "demand_score": 68,
+    "key_skills": [
+      "Writing and Editing",
+      "Research Skills",
+      "Interviewing",
+      "Digital Media",
+      "Fact-Checking",
+      "Social Media"
+    ],
+    "education_requirements": "Bachelor's degree in Journalism, Communications, or related field",
+    "categories": ["Marketing & Communication"],
+    "growth_trend": {
+      "5y_growth_pct": -5,
+      "explain": "Traditional media decline offset by digital growth"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "game_developer",
+    "title": "Video Game Developer",
+    "description": "Create interactive entertainment software, design gameplay mechanics, and implement game features.",
+    "avg_salary": 78000,
+    "entry_level_salary": 55000,
+    "demand_score": 85,
+    "key_skills": [
+      "Game Engines (Unity, Unreal)",
+      "Programming (C#, C++)",
+      "Game Design",
+      "3D Modeling",
+      "Animation",
+      "User Experience"
+    ],
+    "education_requirements": "Bachelor's degree in Game Development, Computer Science, or related field",
+    "categories": ["Technology & Programming", "Arts & Creative"],
+    "growth_trend": {
+      "5y_growth_pct": 26,
+      "explain": "Expanding gaming industry and mobile games"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "construction_manager",
+    "title": "Construction Manager",
+    "description": "Oversee construction projects from planning to completion, managing budgets, schedules, and safety protocols.",
+    "avg_salary": 95000,
+    "entry_level_salary": 65000,
+    "demand_score": 77,
+    "key_skills": [
+      "Project Scheduling",
+      "Budget Management",
+      "Safety Management",
+      "Contract Negotiation",
+      "Quality Control",
+      "Team Coordination"
+    ],
+    "education_requirements": "Bachelor's degree in Construction Management or Engineering",
+    "categories": ["Business & Finance", "Engineering"],
+    "growth_trend": {
+      "5y_growth_pct": 16,
+      "explain": "Infrastructure investment and urban development"
+    },
+    "work_life_balance": 2
+  },
+  {
+    "career_id": "flight_attendant",
+    "title": "Flight Attendant",
+    "description": "Ensure passenger safety and comfort during flights, handle emergencies, and provide customer service.",
+    "avg_salary": 52000,
+    "entry_level_salary": 35000,
+    "demand_score": 71,
+    "key_skills": [
+      "Safety Procedures",
+      "Customer Service",
+      "Emergency Response",
+      "Communication",
+      "Cultural Sensitivity",
+      "First Aid"
+    ],
+    "education_requirements": "High school diploma and airline training certification",
+    "categories": ["Service & Hospitality", "Transportation"],
+    "growth_trend": {
+      "5y_growth_pct": 13,
+      "explain": "Recovery in air travel post-pandemic"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "translator",
+    "title": "Professional Translator",
+    "description": "Convert written or spoken content from one language to another while maintaining meaning and cultural context.",
+    "avg_salary": 52000,
+    "entry_level_salary": 35000,
+    "demand_score": 73,
+    "key_skills": [
+      "Multilingual Proficiency",
+      "Cultural Knowledge",
+      "Translation Software",
+      "Subject Matter Expertise",
+      "Writing Skills",
+      "Time Management"
+    ],
+    "education_requirements": "Bachelor's degree and language proficiency certification",
+    "categories": ["Marketing & Communication"],
+    "growth_trend": {
+      "5y_growth_pct": 19,
+      "explain": "Globalization and international business growth"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "dentist",
+    "title": "General Dentist",
+    "description": "Diagnose and treat dental issues, perform preventive care, and educate patients on oral health.",
+    "avg_salary": 175000,
+    "entry_level_salary": 130000,
+    "demand_score": 82,
+    "key_skills": [
+      "Dental Procedures",
+      "Patient Care",
+      "Diagnostic Skills",
+      "Dental Technology",
+      "Practice Management",
+      "Patient Education"
+    ],
+    "education_requirements": "Doctor of Dental Surgery degree and licensure",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 8,
+      "explain": "Steady demand for dental care services"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "occupational_therapist",
+    "title": "Occupational Therapist",
+    "description": "Help patients develop, recover, or maintain daily living and work skills through therapeutic activities.",
+    "avg_salary": 86000,
+    "entry_level_salary": 65000,
+    "demand_score": 89,
+    "key_skills": [
+      "Activity Analysis",
+      "Adaptive Equipment",
+      "Treatment Planning",
+      "Patient Assessment",
+      "Rehabilitation Techniques",
+      "Documentation"
+    ],
+    "education_requirements": "Master's degree in Occupational Therapy and licensure",
+    "categories": ["Healthcare & Medicine"],
+    "growth_trend": {
+      "5y_growth_pct": 17,
+      "explain": "Aging population and increased awareness of OT benefits"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "real_estate_agent",
+    "title": "Real Estate Agent",
+    "description": "Help clients buy, sell, and rent properties by providing market expertise and facilitating transactions.",
+    "avg_salary": 62000,
+    "entry_level_salary": 35000,
+    "demand_score": 76,
+    "key_skills": [
+      "Sales and Negotiation",
+      "Market Analysis",
+      "Client Relations",
+      "Property Valuation",
+      "Contract Management",
+      "Marketing"
+    ],
+    "education_requirements": "High school diploma and real estate license",
+    "categories": ["Business & Finance", "Sales"],
+    "growth_trend": {
+      "5y_growth_pct": 9,
+      "explain": "Steady housing market activity"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "graphic_designer",
+    "title": "Graphic Designer",
+    "description": "Create visual concepts and designs for digital and print media to communicate ideas and brand messages.",
+    "avg_salary": 52000,
+    "entry_level_salary": 35000,
+    "demand_score": 78,
+    "key_skills": [
+      "Adobe Creative Suite",
+      "Typography",
+      "Brand Design",
+      "Layout Design",
+      "Digital Illustration",
+      "Client Communication"
+    ],
+    "education_requirements": "Bachelor's degree in Graphic Design or related field",
+    "categories": ["Arts & Creative"],
+    "growth_trend": {
+      "5y_growth_pct": 10,
+      "explain": "Digital marketing and brand design demand"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "business_analyst",
+    "title": "Business Analyst",
+    "description": "Analyze business processes, identify improvement opportunities, and facilitate organizational change initiatives.",
+    "avg_salary": 78000,
+    "entry_level_salary": 58000,
+    "demand_score": 84,
+    "key_skills": [
+      "Process Analysis",
+      "Requirements Gathering",
+      "Data Analysis",
+      "Stakeholder Management",
+      "Documentation",
+      "Change Management"
+    ],
+    "education_requirements": "Bachelor's degree in Business, IT, or related field",
+    "categories": ["Business & Finance"],
+    "growth_trend": {
+      "5y_growth_pct": 18,
+      "explain": "Digital transformation and process optimization needs"
+    },
+    "work_life_balance": 4
+  },
+  {
+    "career_id": "electrician",
+    "title": "Electrician",
+    "description": "Install, maintain, and repair electrical systems in residential, commercial, and industrial settings.",
+    "avg_salary": 65000,
+    "entry_level_salary": 42000,
+    "demand_score": 86,
+    "key_skills": [
+      "Electrical Installation",
+      "Troubleshooting",
+      "Safety Protocols",
+      "Blueprint Reading",
+      "Electrical Codes",
+      "Hand and Power Tools"
+    ],
+    "education_requirements": "Trade school or apprenticeship program",
+    "categories": ["Skilled Trades"],
+    "growth_trend": {
+      "5y_growth_pct": 20,
+      "explain": "Infrastructure modernization and renewable energy"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "product_manager",
+    "title": "Product Manager",
+    "description": "Guide product development from conception to launch, working with cross-functional teams to deliver user value.",
+    "avg_salary": 115000,
+    "entry_level_salary": 85000,
+    "demand_score": 88,
+    "key_skills": [
+      "Product Strategy",
+      "Market Research",
+      "Agile Methodologies",
+      "User Experience",
+      "Data Analysis",
+      "Stakeholder Management"
+    ],
+    "education_requirements": "Bachelor's degree in Business, Engineering, or related field",
+    "categories": ["Business & Finance", "Technology & Programming"],
+    "growth_trend": {
+      "5y_growth_pct": 24,
+      "explain": "Product-driven digital economy growth"
+    },
+    "work_life_balance": 3
+  },
+  {
+    "career_id": "marine_biologist",
+    "title": "Marine Biologist",
+    "description": "Study marine organisms and ecosystems, conduct research, and work on conservation efforts.",
+    "avg_salary": 66000,
+    "entry_level_salary": 45000,
+    "demand_score": 71,
+    "key_skills": [
+      "Marine Research",
+      "Underwater Diving",
+      "Data Collection",
+      "Statistical Analysis",
+      "Field Sampling",
+      "Laboratory Techniques"
+    ],
+    "education_requirements": "Bachelor's or Master's degree in Marine Biology, Oceanography, or related field",
+    "categories": ["Science & Research", "Environment & Conservation"],
+    "growth_trend": {
+      "5y_growth_pct": 12,
+      "explain": "Increased focus on ocean conservation and climate research"
+    },
+    "work_life_balance": 3
+    }
+  ]

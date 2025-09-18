@@ -39,7 +39,8 @@ export default function Mentors() {
             const topCareer = careers[0];
             console.log('Fetching personalized mentors for career:', topCareer.title);
 
-            const response = await apiService.getPersonalizedMentors(topCareer, sessionData || {});
+            // Use the existing matchMentors endpoint instead of getPersonalizedMentors
+            const response = await apiService.matchMentors(topCareer, sessionData || {});
 
             if (response.error) {
               console.warn('Personalized mentor matching failed:', response.error);

@@ -158,32 +158,31 @@ class ApiService {
     return this.fetchWithErrorHandling('/health');
   }
 
-  // New flow methods
+  // New flow methods - updated to handle session IDs properly
   async startSession(): Promise<ApiResponse<{ session_id: string; questions: any[]; step: string; total_steps: number }>> {
     return this.fetchWithErrorHandling('/start-session', {
       method: 'POST',
     });
   }
 
-  async submitInitialAnswers(sessionData: any): Promise<ApiResponse<{ adaptive_questions: any[]; step: string; session_data: any }>> {
+  async submitInitialAnswers(requestData: { session_id: string | null; session_data: any }): Promise<ApiResponse<{ adaptive_questions: any[]; step: string; session_data: any; session_id: string }>> {
     return this.fetchWithErrorHandling('/submit-initial-answers', {
       method: 'POST',
-      body: JSON.stringify({ session_data: sessionData }),
+      body: JSON.stringify(requestData),
     });
   }
 
-  async completeSurvey(sessionData: any): Promise<ApiResponse<{ recommendations: CareerRecommendation[]; count: number; session_completed: boolean }>> {
+  async completeSurvey(requestData: { session_id: string | null; session_data: any }): Promise<ApiResponse<{ recommendations: CareerRecommendation[]; count: number; session_completed: boolean; session_id: string }>> {
     return this.fetchWithErrorHandling('/complete-survey', {
       method: 'POST',
-      body: JSON.stringify({ session_data: sessionData }),
+      body: JSON.stringify(requestData),
     });
   }
 
   async getPersonalizedMentors(selectedCareer: any, sessionData: any): Promise<ApiResponse<{ mentors: Mentor[]; count: number; career: string; personalized: boolean }>> {
-    return this.fetchWithErrorHandling('/get-personalized-mentors', {
-      method: 'POST',
-      body: JSON.stringify({ selected_career: selectedCareer, session_data: sessionData }),
-    });
+    // This method is no longer needed since we're using matchMentors
+    // Keeping it for backward compatibility but redirecting to matchMentors
+    return this.matchMentors(selectedCareer, sessionData);
   }
 
   async generateLearningRoadmap(careerData: any, userProfile: any): Promise<ApiResponse<LearningRoadmap>> {
@@ -280,4 +279,5 @@ class ApiService {
 }
 
 export const apiService = new ApiService();
+export type { CareerRecommendation, SessionData, Mentor };
 export type { CareerRecommendation, SessionData, Mentor };

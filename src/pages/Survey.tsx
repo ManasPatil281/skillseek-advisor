@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import { apiService } from "@/services/api";
 interface SurveyQuestion {
   id: string;
   question: string;
-  type: "radio" | "textarea" | "text";
+  type: "radio" | "checkbox" | "textarea" | "text";
   options?: string[];
   required: boolean;
 }
@@ -27,6 +28,7 @@ export default function Survey() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<any>({});
   const navigate = useNavigate();
 
@@ -35,12 +37,15 @@ export default function Survey() {
       try {
         setIsLoading(true);
         setError(null);
+        
         const response = await apiService.startSession();
         if (response.error) {
           throw new Error(response.error);
         }
+        
         if (response.data?.questions) {
           setInitialQuestions(response.data.questions);
+          setSessionId(response.data.session_id);
         } else {
           throw new Error('No questions received from server');
         }
@@ -89,7 +94,12 @@ export default function Survey() {
         }
       });
 
-      const response = await apiService.submitInitialAnswers(initialAnswers);
+      const requestData = {
+        session_id: sessionId,
+        session_data: initialAnswers
+      };
+
+      const response = await apiService.submitInitialAnswers(requestData);
       if (response.error) {
         throw new Error(response.error);
       }
@@ -131,24 +141,58 @@ export default function Survey() {
         }
       });
 
-      const response = await apiService.completeSurvey(allAnswers);
+      const requestData = {
+        session_id: sessionId,
+        session_data: allAnswers
+      };
+
+      const response = await apiService.completeSurvey(requestData);
       if (response.error) {
         throw new Error(response.error);
       }
       
-      // Store results and navigate to recommendations
-      localStorage.setItem('surveyResults', JSON.stringify({
+      // Store results in localStorage as backup and navigate
+      const surveyResults = {
+        sessionId: sessionId,
         sessionData: allAnswers,
         recommendations: response.data?.recommendations || [],
         completedAt: new Date().toISOString()
-      }));
-      navigate('/recommendations');
+      };
+      
+      localStorage.setItem('surveyResults', JSON.stringify(surveyResults));
+      
+      // Clear any cached roadmaps since survey data has changed
+      localStorage.removeItem('learningRoadmaps');
+      localStorage.removeItem('learningRoadmapsTimestamp');
+      
+      // Ensure navigation happens after storing data
+      setTimeout(() => {
+        navigate('/recommendations');
+      }, 100);
     } catch (error) {
       console.error('Error completing survey:', error);
       setError(error instanceof Error ? error.message : 'Failed to complete survey');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCheckboxChange = (questionId: string, option: string, checked: boolean) => {
+    setAnswers(prev => {
+      const currentAnswers = prev[questionId] ? prev[questionId].split(', ') : [];
+      let newAnswers;
+      
+      if (checked) {
+        newAnswers = [...currentAnswers, option];
+      } else {
+        newAnswers = currentAnswers.filter(ans => ans !== option);
+      }
+      
+      return {
+        ...prev,
+        [questionId]: newAnswers.join(', ')
+      };
+    });
   };
 
   const canProceed = !currentQuestion?.required || answers[currentQuestion.id];
@@ -270,6 +314,33 @@ export default function Survey() {
                 </div>
               ))}
             </RadioGroup>
+          )}
+
+          {currentQuestion.type === "checkbox" && currentQuestion.options && (
+            <div className="space-y-3">
+              {currentQuestion.options.map((option, index) => {
+                const currentAnswers = answers[currentQuestion.id] ? answers[currentQuestion.id].split(', ') : [];
+                const isChecked = currentAnswers.includes(option);
+                
+                return (
+                  <div key={index} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`checkbox-${index}`}
+                      checked={isChecked}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange(currentQuestion.id, option, checked as boolean)
+                      }
+                    />
+                    <Label 
+                      htmlFor={`checkbox-${index}`}
+                      className="text-sm font-normal cursor-pointer flex-1 py-2"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                );
+              })}
+            </div>
           )}
 
           {currentQuestion.type === "textarea" && (

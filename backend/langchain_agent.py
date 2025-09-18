@@ -22,6 +22,43 @@ def get_llm():
         groq_api_key=api_key
     )
 
+def validate_api_key() -> bool:
+    """Validate if Groq API key is available and valid."""
+    try:
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key or not api_key.strip():
+            return False
+        
+        # Try to initialize LLM to validate key
+        llm = get_llm()
+        # Simple test call
+        response = llm.invoke([HumanMessage(content="Hello")])
+        return True
+    except Exception as e:
+        print(f"API key validation failed: {str(e)}")
+        return False
+
+def get_model_info() -> Dict[str, Any]:
+    """Get information about the Groq model."""
+    try:
+        if not validate_api_key():
+            return {"error": "Invalid API key", "models": []}
+        
+        return {
+            "status": "connected",
+            "models": ["llama-3.3-70b-versatile"],
+            "default_model": "llama-3.3-70b-versatile",
+            "provider": "Groq",
+            "api_key_valid": True
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "status": "error",
+            "models": [],
+            "api_key_valid": False
+        }
+
 # Prompt templates
 ADAPTIVE_QUESTIONS_PROMPT = PromptTemplate(
     input_variables=["context"],
@@ -72,45 +109,82 @@ Response:"""
 
 def generate_adaptive_questions(context: str) -> List[str]:
     """
-    Generate adaptive follow-up questions based on user's current answers
+    Generate 5 adaptive follow-up questions based on student's profile
     
     Args:
-        context: JSON string containing user info and current answers
+        context: JSON string containing student info and current answers
         
     Returns:
-        List of follow-up question strings
+        List of 5 personalized question strings
     """
     try:
         llm = get_llm()
         
-        # Format the prompt
-        prompt = ADAPTIVE_QUESTIONS_PROMPT.format(context=context)
+        prompt = f"""
+        Based on this high school student's profile, generate exactly 5 personalized career exploration questions.
+        
+        Student Profile:
+        {context}
+        
+        Requirements:
+        - Questions should be age-appropriate for 10th/12th graders
+        - Focus on career interests, values, and future aspirations
+        - Include a mix of open-ended and specific questions
+        - Help uncover deeper motivations and preferences
+        - Avoid questions about work experience or education level
+        - Make questions engaging and thought-provoking
+        
+        Generate exactly 5 questions that will help this student explore their career interests more deeply.
+        
+        Return only the questions as a numbered list, one per line.
+        """
+        
+        messages = [
+            SystemMessage(content="You are a career counselor specializing in helping high school students explore their interests and future careers. Generate thoughtful, personalized questions."),
+            HumanMessage(content=prompt)
+        ]
         
         # Get response from LLM
-        response = llm.invoke([HumanMessage(content=prompt)])
+        response = llm.invoke(messages)
         
-        # Parse the JSON response
-        questions_json = response.content.strip()
+        # Parse the response into 5 questions
+        content = response.content.strip()
+        lines = content.split('\n')
         
-        # Clean up response if it has extra text
-        if questions_json.startswith('```json'):
-            questions_json = questions_json.replace('```json', '').replace('```', '').strip()
+        questions = []
+        for line in lines:
+            line = line.strip()
+            # Remove numbering and clean up
+            if line and (line[0].isdigit() or line.startswith('-')):
+                question = line.lstrip('0123456789.- ').strip()
+                if question and len(question) > 10:  # Ensure it's a real question
+                    questions.append(question)
         
-        questions = json.loads(questions_json)
+        # Ensure we have exactly 5 questions
+        if len(questions) < 5:
+            # Add generic but relevant questions
+            additional_questions = [
+                "What kind of problems in the world would you most like to help solve?",
+                "How do you feel about working with different types of people every day?",
+                "What subjects do you wish you could spend more time studying?",
+                "How important is creativity in the work you want to do?",
+                "What kind of daily routine would make you happiest at work?"
+            ]
+            questions.extend(additional_questions[len(questions):5])
+        elif len(questions) > 5:
+            questions = questions[:5]
         
-        # Ensure it's a list and limit to 3 questions
-        if isinstance(questions, list):
-            return questions[:3]
-        else:
-            return []
-            
+        return questions
+        
     except Exception as e:
         print(f"Error generating adaptive questions: {str(e)}")
-        # Fallback questions if LLM fails
+        # Return fallback questions
         return [
-            "What specific aspects of this field interest you most?",
-            "How do you prefer to learn new skills?",
-            "What kind of impact do you want to have in your career?"
+            "What career fields have you considered pursuing after high school?",
+            "How do you feel about working with technology every day?",
+            "What kind of work environment would make you most productive?",
+            "Are there any careers in your family that interest you?",
+            "What skills would you most like to develop in the next few years?"
         ]
 
 def summarize_and_roadmap(session_json: Dict[str, Any], top_careers: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -196,7 +270,7 @@ def generate_learning_roadmap(career_data: Dict[str, Any], user_profile: Dict[st
         user_education = user_profile.get("education", "")
         
         prompt = f"""
-        Create a comprehensive learning roadmap for someone pursuing a career as a {career_title}.
+        Create a detailed, structured learning roadmap for someone pursuing a career as a {career_title}.
         
         User Profile:
         - Current Skills: {user_skills}
@@ -207,39 +281,76 @@ def generate_learning_roadmap(career_data: Dict[str, Any], user_profile: Dict[st
         - Required Skills: {', '.join(career_data.get('key_skills', []))}
         - Education Requirements: {career_data.get('education_requirements', '')}
         
-        Please provide a detailed roadmap with the following structure:
-        1. Skill Gap Analysis
-        2. Learning Phases (Beginner, Intermediate, Advanced)
-        3. Recommended Resources (courses, books, certifications)
-        4. Timeline and Milestones
-        5. Practical Projects
-        6. Networking and Community Building
+        Provide a comprehensive response with these exact sections. Use plain text only - NO asterisks (*), NO bold (**), NO markdown formatting:
         
-        Format as JSON with clear sections and actionable items.
+        SKILL GAP ANALYSIS:
+        Write 2-3 detailed sentences about what skills the user needs to develop.
+        
+        LEARNING PHASES:
+        List 4 phases with clear structure:
+        Phase 1: Foundations (3 months)
+        - Learn programming basics and fundamental concepts
+        - Build small practice projects
+        
+        Phase 2: Programming Languages (3 months)
+        - Master a primary programming language
+        - Work on intermediate projects
+        
+        Phase 3: Software Development (3 months)
+        - Learn development methodologies and tools
+        - Focus on collaboration and best practices
+        
+        Phase 4: Specialization (3 months)
+        - Choose a focus area and build expertise
+        - Create portfolio projects
+        
+        RESOURCES:
+        List 5-7 specific resources as plain text:
+        1. Coursera: Python for Everybody (Online Course)
+        2. Udemy: Complete JavaScript Course (Online Course)
+        3. Clean Code by Robert C. Martin (Book)
+        4. MDN Web Docs (Documentation)
+        
+        TIMELINE:
+        Provide a month-by-month breakdown for 12 months:
+        Month 1-3: Complete foundation courses and basic projects
+        Month 4-6: Master programming languages and build intermediate projects
+        Month 7-9: Learn software development principles and methodologies
+        Month 10-12: Specialize in chosen area and prepare portfolio
+        
+        PROJECTS:
+        List 5 practical projects:
+        1. Build a personal portfolio website
+        2. Create a task management application
+        3. Develop a data visualization dashboard
+        4. Build a REST API for a web application
+        5. Contribute to an open-source project
+        
+        NETWORKING:
+        Provide specific networking strategies:
+        Join online communities like GitHub, Stack Overflow, and Reddit
+        Attend local tech meetups and conferences
+        Participate in coding challenges on platforms like LeetCode
+        Connect with professionals on LinkedIn
+        Join relevant Slack or Discord communities
+        
+        Use plain text only. No special characters, no formatting symbols. Keep responses clear and actionable.
         """
         
         messages = [
-            SystemMessage(content="You are an expert career coach and learning strategist. Create comprehensive, actionable learning roadmaps tailored to individual profiles."),
+            SystemMessage(content="You are an expert career coach. Provide detailed, structured learning advice using plain text only. No asterisks, no bold, no markdown."),
             HumanMessage(content=prompt)
         ]
         
-        response = llm.invoke(messages)
-        
-        # Try to parse as JSON, fallback to structured text
         try:
-            roadmap_data = json.loads(response.content)
-        except:
-            # If JSON parsing fails, create structured response
-            roadmap_data = {
-                "career": career_title,
-                "skill_gap_analysis": extract_section(response.content, "skill gap"),
-                "learning_phases": extract_learning_phases(response.content),
-                "resources": extract_resources(response.content),
-                "timeline": extract_timeline(response.content),
-                "projects": extract_projects(response.content),
-                "networking": extract_section(response.content, "networking"),
-                "raw_content": response.content
-            }
+            response = llm.invoke(messages)
+            content = response.content.strip()
+        except Exception as e:
+            print(f"LLM error in generate_learning_roadmap: {str(e)}")
+            return create_fallback_roadmap(career_title)
+        
+        # Parse and structure the response
+        roadmap_data = parse_roadmap_content(content, career_title)
         
         return {
             "roadmap": roadmap_data,
@@ -249,7 +360,211 @@ def generate_learning_roadmap(career_data: Dict[str, Any], user_profile: Dict[st
         
     except Exception as e:
         print(f"Error generating learning roadmap: {str(e)}")
-        return {"error": f"Failed to generate roadmap: {str(e)}"}
+        return create_fallback_roadmap(career_data.get("title", "Unknown Career"))
+
+def parse_roadmap_content(content: str, career_title: str) -> Dict[str, Any]:
+    """Parse roadmap content into clean, structured format with better handling."""
+    try:
+        # Split content into sections
+        sections = content.split('\n\n')
+        roadmap = {
+            "career": career_title,
+            "skill_gap_analysis": "",
+            "learning_phases": [],
+            "resources": [],
+            "timeline": "",
+            "projects": [],
+            "networking": ""
+        }
+        
+        current_section = ""
+        for section in sections:
+            section = section.strip()
+            if not section:
+                continue
+                
+            section_lower = section.lower()
+            
+            if 'skill gap' in section_lower:
+                roadmap["skill_gap_analysis"] = clean_section_content(section)
+            elif 'learning phase' in section_lower:
+                roadmap["learning_phases"] = parse_phases_clean(section)
+            elif 'resource' in section_lower:
+                roadmap["resources"] = parse_resources_clean(section)
+            elif 'timeline' in section_lower:
+                roadmap["timeline"] = clean_section_content(section)
+            elif 'project' in section_lower:
+                roadmap["projects"] = parse_projects_clean(section)
+            elif 'networking' in section_lower:
+                roadmap["networking"] = clean_section_content(section)
+        
+        return roadmap
+        
+    except Exception as e:
+        print(f"Error parsing roadmap content: {str(e)}")
+        return create_fallback_roadmap(career_title)["roadmap"]
+
+def clean_section_content(section: str) -> str:
+    """Clean section content by removing headers and formatting, including asterisks."""
+    lines = section.split('\n')
+    content_lines = []
+    
+    for line in lines[1:]:  # Skip header
+        line = line.strip()
+        # Remove asterisks and other markdown symbols
+        line = line.replace('*', '').replace('**', '').replace('_', '').replace('`', '')
+        if line and not line.lower().startswith(('skill', 'learning', 'resource', 'timeline', 'project', 'networking')):
+            content_lines.append(line)
+    
+    return '\n'.join(content_lines)
+
+def parse_phases_clean(section: str) -> List[Dict[str, Any]]:
+    """Parse learning phases into structured format with better cleaning."""
+    phases = []
+    lines = section.split('\n')
+    
+    current_phase = None
+    for line in lines[1:]:  # Skip header
+        line = line.strip()
+        # Remove asterisks and clean up
+        line = line.replace('*', '').replace('**', '').replace('_', '')
+        
+        if not line:
+            continue
+            
+        # Look for phase headers
+        if line.startswith('Phase') and ':' in line:
+            if current_phase:
+                phases.append(current_phase)
+            
+            # Parse phase name and duration
+            parts = line.split(':', 1)
+            phase_info = parts[0].strip()
+            description = parts[1].strip() if len(parts) > 1 else ""
+            
+            # Extract name and duration
+            if '(' in phase_info and ')' in phase_info:
+                name_part = phase_info.split('(')[0].strip()
+                duration_part = phase_info.split('(')[1].split(')')[0].strip()
+                current_phase = {"name": name_part, "description": description, "duration": duration_part}
+            else:
+                current_phase = {"name": phase_info, "description": description, "duration": "3 months"}
+        elif current_phase and (line.startswith('-') or line.startswith('•') or len(line) > 10):
+            # Add to description
+            clean_line = line.lstrip('-• ').strip()
+            if clean_line:
+                if current_phase["description"]:
+                    current_phase["description"] += f"\n{clean_line}"
+                else:
+                    current_phase["description"] = clean_line
+    
+    if current_phase:
+        phases.append(current_phase)
+    
+    return phases if phases else [
+        {"name": "Foundation Phase", "description": "Build core skills and knowledge", "duration": "3 months"},
+        {"name": "Intermediate Phase", "description": "Develop specialized skills", "duration": "3 months"},
+        {"name": "Advanced Phase", "description": "Master advanced concepts", "duration": "3 months"},
+        {"name": "Professional Phase", "description": "Prepare for career entry", "duration": "3 months"}
+    ]
+
+def parse_resources_clean(section: str) -> List[Dict[str, str]]:
+    """Parse resources into structured format with cleaning."""
+    resources = []
+    lines = section.split('\n')
+    
+    for line in lines[1:]:  # Skip header
+        line = line.strip()
+        # Remove asterisks and clean up
+        line = line.replace('*', '').replace('**', '').replace('_', '')
+        
+        if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
+            resource_text = line.lstrip('-•0123456789. ').strip()
+            if resource_text and len(resource_text) > 5:
+                # Categorize resource
+                if 'course' in resource_text.lower() or 'udemy' in resource_text.lower() or 'coursera' in resource_text.lower():
+                    category = "Online Course"
+                elif 'book' in resource_text.lower():
+                    category = "Book"
+                elif 'documentation' in resource_text.lower():
+                    category = "Documentation"
+                else:
+                    category = "Resource"
+                
+                resources.append({
+                    "type": category,
+                    "name": resource_text,
+                    "category": category
+                })
+    
+    return resources[:7]  # Limit to 7 resources
+
+def parse_projects_clean(section: str) -> List[str]:
+    """Parse projects into list format with cleaning."""
+    projects = []
+    lines = section.split('\n')
+    
+    for line in lines[1:]:  # Skip header
+        line = line.strip()
+        # Remove asterisks and clean up
+        line = line.replace('*', '').replace('**', '').replace('_', '')
+        
+        if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
+            project_text = line.lstrip('-•0123456789. ').strip()
+            if project_text and len(project_text) > 5:
+                projects.append(project_text)
+    
+    return projects[:5]  # Limit to 5 projects
+
+def create_fallback_roadmap(career_title: str) -> Dict[str, Any]:
+    """Create an enhanced fallback roadmap when LLM fails"""
+    return {
+        "roadmap": {
+            "career": career_title,
+            "skill_gap_analysis": f"To succeed in {career_title}, focus on building technical proficiency, problem-solving skills, and industry knowledge. Develop hands-on experience through projects and continuous learning.",
+            "learning_phases": [
+                {
+                    "name": "Foundation Phase",
+                    "description": "Learn core concepts, basic tools, and fundamental skills required for the role",
+                    "duration": "3 months"
+                },
+                {
+                    "name": "Technical Skills Phase", 
+                    "description": "Master key technical skills, programming languages, and tools specific to the career",
+                    "duration": "3 months"
+                },
+                {
+                    "name": "Practical Application Phase",
+                    "description": "Build real projects, gain hands-on experience, and work on portfolio development",
+                    "duration": "3 months"
+                },
+                {
+                    "name": "Professional Development Phase",
+                    "description": "Prepare for job applications, interviews, and career advancement",
+                    "duration": "3 months"
+                }
+            ],
+            "resources": [
+                {"type": "Online Course", "name": "Coursera: Google Career Certificates", "category": "Education"},
+                {"type": "Online Course", "name": "Udemy: Complete Web Development Bootcamp", "category": "Education"},
+                {"type": "Book", "name": "Clean Code by Robert C. Martin", "category": "Reference"},
+                {"type": "Book", "name": "The Pragmatic Programmer", "category": "Reference"},
+                {"type": "Documentation", "name": "Official documentation for key technologies", "category": "Reference"},
+                {"type": "Practice Platform", "name": "LeetCode, HackerRank for coding practice", "category": "Practice"}
+            ],
+            "timeline": "Month 1-3: Complete foundation courses and basic projects\nMonth 4-6: Master technical skills and build intermediate projects\nMonth 7-9: Focus on advanced topics and portfolio development\nMonth 10-12: Prepare for job applications and interviews",
+            "projects": [
+                "Build a personal portfolio website showcasing your skills",
+                "Create a full-stack web application with database integration",
+                "Develop a mobile app using modern frameworks",
+                "Contribute to open-source projects on GitHub",
+                "Build a data visualization dashboard"
+            ],
+            "networking": "Join professional communities on LinkedIn and GitHub\nAttend local tech meetups and conferences\nParticipate in online forums like Stack Overflow\nConnect with alumni and industry professionals\nJoin relevant Slack/Discord communities"
+        },
+        "generated_at": "2024-01-01T00:00:00Z",
+        "career_title": career_title
+    }
 
 def get_industry_trends(career_field: str, time_period: str = "6months") -> Dict[str, Any]:
     """Get latest developments and trends in a specific career field."""
@@ -257,45 +572,41 @@ def get_industry_trends(career_field: str, time_period: str = "6months") -> Dict
         llm = get_llm()
         
         prompt = f"""
-        Provide the latest developments, trends, and growth opportunities in the {career_field} field 
-        for the past {time_period}.
+        Provide comprehensive, actionable insights on the {career_field} field for the past {time_period}.
         
-        Please include:
-        1. Emerging Technologies and Tools
-        2. Market Trends and Opportunities
-        3. Skill Demands and Evolution
-        4. Industry News and Major Developments
-        5. Future Outlook and Predictions
-        6. Salary Trends and Job Market Analysis
-        7. Key Companies and Startups to Watch
+        Generate detailed, varied content for each section. Be specific and use bullet points:
         
-        Focus on actionable insights for career growth and development.
-        Format as JSON with clear sections.
+        1. EMERGING TECHNOLOGIES: List 4-6 specific technologies, tools, or frameworks gaining traction (e.g., AI/ML, blockchain, IoT, quantum computing). Do NOT list companies here.
+        
+        2. MARKET TRENDS: Describe 3-5 growth patterns, market size changes, and industry shifts (e.g., remote work adoption, digital transformation).
+        
+        3. SKILL DEMANDS: List 4-6 most in-demand skills with brief explanations (e.g., Python programming, cloud architecture, data analysis).
+        
+        4. INDUSTRY NEWS: Mention 2-3 recent major developments, acquisitions, or launches with specific examples.
+        
+        5. FUTURE OUTLOOK: Predict 3-5 trends for the next 1-2 years with specific examples.
+        
+        6. SALARY TRENDS: Discuss 3-5 compensation changes, regional variations, and factors affecting pay.
+        
+        7. KEY COMPANIES: Name 4-6 leading companies and startups with brief descriptions of their focus areas.
+        
+        Format each section clearly with the exact section name in ALL CAPS, followed by bullet points. Keep responses professional, data-driven, and specific to {career_field}.
         """
         
         messages = [
-            SystemMessage(content="You are an industry analyst and career strategist with expertise in tracking market trends and technological developments."),
+            SystemMessage(content="You are an industry analyst providing detailed, structured market insights with specific examples and bullet points. Follow the exact format requested."),
             HumanMessage(content=prompt)
         ]
         
-        response = llm.invoke(messages)
-        
-        # Try to parse as JSON, fallback to structured text
         try:
-            trends_data = json.loads(response.content)
-        except:
-            # If JSON parsing fails, create structured response
-            trends_data = {
-                "field": career_field,
-                "emerging_technologies": extract_section(response.content, "technologies"),
-                "market_trends": extract_section(response.content, "market trends"),
-                "skill_demands": extract_section(response.content, "skill demands"),
-                "industry_news": extract_section(response.content, "industry news"),
-                "future_outlook": extract_section(response.content, "future outlook"),
-                "salary_trends": extract_section(response.content, "salary trends"),
-                "key_companies": extract_section(response.content, "companies"),
-                "raw_content": response.content
-            }
+            response = llm.invoke(messages)
+            content = response.content.strip()
+        except Exception as e:
+            print(f"LLM error in get_industry_trends: {str(e)}")
+            return create_fallback_trends(career_field, time_period)
+        
+        # Parse and structure the response
+        trends_data = parse_trends_content(content, career_field)
         
         return {
             "trends": trends_data,
@@ -306,93 +617,84 @@ def get_industry_trends(career_field: str, time_period: str = "6months") -> Dict
         
     except Exception as e:
         print(f"Error getting industry trends: {str(e)}")
-        return {"error": f"Failed to get trends: {str(e)}"}
+        return create_fallback_trends(career_field, time_period)
 
-# Helper functions for parsing content
-def extract_section(content: str, section_name: str) -> str:
-    """Extract a specific section from the content."""
-    lines = content.split('\n')
-    section_lines = []
-    in_section = False
+def parse_trends_content(content: str, field: str) -> Dict[str, str]:
+    """Parse trends content into structured format with better section extraction."""
+    trends = {
+        "field": field,
+        "emerging_technologies": "AI/ML frameworks, cloud computing platforms, blockchain solutions, IoT devices, quantum computing",
+        "market_trends": "Growing demand for digital transformation, remote work adoption, increased investment in cybersecurity",
+        "skill_demands": "Python programming, cloud architecture (AWS/Azure), data analysis, cybersecurity fundamentals, agile methodologies",
+        "industry_news": "Major tech acquisitions, new AI model releases, regulatory changes in data privacy",
+        "future_outlook": "Continued growth in AI adoption, expansion of remote work, increased focus on sustainability",
+        "salary_trends": "Competitive salaries with 5-10% annual increases, premium for specialized skills",
+        "key_companies": "Google, Microsoft, Amazon, Apple, Meta, Netflix, Tesla, Uber"
+    }
     
-    for line in lines:
-        if section_name.lower() in line.lower():
-            in_section = True
-        elif in_section and any(keyword in line.lower() for keyword in ['#', '##', 'section', '**']):
-            break
-        elif in_section:
-            section_lines.append(line)
+    # Split content into sections with better detection
+    sections = content.split('\n\n')
+    current_section = ""
     
-    return '\n'.join(section_lines).strip()
+    for section in sections:
+        section = section.strip()
+        if not section:
+            continue
+            
+        section_lower = section.lower()
+        
+        # Detect section headers
+        if 'emerging technologies' in section_lower or section.startswith('EMERGING TECHNOLOGIES'):
+            trends["emerging_technologies"] = extract_bullet_points(section)
+        elif 'market trends' in section_lower or section.startswith('MARKET TRENDS'):
+            trends["market_trends"] = extract_bullet_points(section)
+        elif 'skill demands' in section_lower or section.startswith('SKILL DEMANDS'):
+            trends["skill_demands"] = extract_bullet_points(section)
+        elif 'industry news' in section_lower or section.startswith('INDUSTRY NEWS'):
+            trends["industry_news"] = extract_bullet_points(section)
+        elif 'future outlook' in section_lower or section.startswith('FUTURE OUTLOOK'):
+            trends["future_outlook"] = extract_bullet_points(section)
+        elif 'salary trends' in section_lower or section.startswith('SALARY TRENDS'):
+            trends["salary_trends"] = extract_bullet_points(section)
+        elif 'key companies' in section_lower or section.startswith('KEY COMPANIES'):
+            trends["key_companies"] = extract_bullet_points(section)
+    
+    return trends
 
-def extract_learning_phases(content: str) -> List[Dict[str, Any]]:
-    """Extract learning phases from content."""
-    phases = []
-    phase_keywords = ['beginner', 'intermediate', 'advanced', 'phase 1', 'phase 2', 'phase 3']
+def extract_bullet_points(section: str) -> str:
+    """Extract and format bullet points from a section."""
+    lines = section.split('\n')
+    bullets = []
     
-    for keyword in phase_keywords:
-        section = extract_section(content, keyword)
-        if section:
-            phases.append({
-                "name": keyword.title(),
-                "description": section,
-                "duration": "3-6 months"
-            })
+    for line in lines[1:]:  # Skip header
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Clean up bullet points
+        if line.startswith(('-', '•', '*')):
+            clean_line = line.lstrip('-•* ').strip()
+            if clean_line and len(clean_line) > 5:  # Avoid very short lines
+                bullets.append(f"• {clean_line}")
+        elif len(line) > 10 and not line.lower().startswith(('emerging', 'market', 'skill', 'industry', 'future', 'salary', 'key')):
+            bullets.append(f"• {line}")
     
-    return phases if phases else [
-        {"name": "Foundation", "description": "Build core skills", "duration": "3 months"},
-        {"name": "Intermediate", "description": "Develop specialized knowledge", "duration": "6 months"},
-        {"name": "Advanced", "description": "Master advanced concepts", "duration": "6+ months"}
-    ]
+    return '\n'.join(bullets) if bullets else "Information being updated..."
 
-def extract_resources(content: str) -> List[Dict[str, str]]:
-    """Extract learning resources from content."""
-    resources = []
-    resource_keywords = ['course', 'book', 'certification', 'tutorial', 'documentation']
-    
-    lines = content.split('\n')
-    for line in lines:
-        for keyword in resource_keywords:
-            if keyword in line.lower():
-                resources.append({
-                    "type": keyword.title(),
-                    "name": line.strip(),
-                    "category": "recommended"
-                })
-    
-    return resources[:10]  # Limit to 10 resources
-
-def extract_timeline(content: str) -> str:
-    """Extract timeline information from content."""
-    timeline_section = extract_section(content, "timeline")
-    return timeline_section if timeline_section else "6-12 months for comprehensive learning"
-
-def extract_projects(content: str) -> List[str]:
-    """Extract project suggestions from content."""
-    projects = []
-    project_section = extract_section(content, "project")
-    
-    if project_section:
-        lines = project_section.split('\n')
-        for line in lines:
-            if line.strip() and not line.startswith('#'):
-                projects.append(line.strip())
-    
-    return projects[:5]  # Limit to 5 projects
-
-def validate_api_key() -> bool:
-    """Validate if Groq API key is available."""
-    api_key = os.getenv("GROQ_API_KEY")
-    return bool(api_key and api_key.strip())
-
-def get_model_info() -> Dict[str, Any]:
-    """Get information about the Groq model."""
-    if not validate_api_key():
-        return {"error": "Invalid API key", "models": []}
-    
+def create_fallback_trends(field: str, period: str) -> Dict[str, Any]:
+    """Create enhanced fallback trends with better structure."""
     return {
-        "status": "connected",
-        "models": ["llama-3.3-70b-versatile"],
-        "default_model": "llama-3.3-70b-versatile",
-        "provider": "Groq"
+        "trends": {
+            "field": field,
+            "emerging_technologies": "• Artificial Intelligence and Machine Learning\n• Cloud Computing (AWS, Azure, GCP)\n• Blockchain and Web3 technologies\n• Internet of Things (IoT)\n• Quantum Computing research\n• Edge Computing solutions",
+            "market_trends": "• Steady 8-12% annual growth\n• Increased remote work adoption\n• Rising demand for digital skills\n• Growing investment in cybersecurity\n• Expansion of e-commerce platforms\n• AI integration across industries",
+            "skill_demands": "• Python and JavaScript programming\n• Cloud platform expertise\n• Data analysis and visualization\n• Cybersecurity fundamentals\n• Agile project management\n• Machine learning basics",
+            "industry_news": "• Major acquisitions in AI startups\n• New cloud service launches\n• Regulatory updates on data privacy\n• Remote work policy changes\n• Sustainability initiatives\n• AI model advancements",
+            "future_outlook": "• Continued AI integration across industries\n• Hybrid work models becoming standard\n• Increased focus on ethical tech\n• Growth in green technology\n• Expansion of digital education\n• Rise of metaverse applications",
+            "salary_trends": "• Average salaries: $80,000 - $120,000\n• 5-8% annual increases expected\n• Premium for specialized skills\n• Regional variations by location\n• Bonuses for high performers\n• Remote work salary adjustments",
+            "key_companies": "• Google (AI and cloud leader)\n• Microsoft (Enterprise solutions)\n• Amazon (E-commerce and AWS)\n• Apple (Consumer technology)\n• Meta (Social media and VR)\n• Netflix (Streaming and data analytics)"
+        },
+        "field": field,
+        "period": period,
+        "generated_at": "2024-01-01T00:00:00Z"
     }
